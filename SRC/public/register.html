@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="RegisterContainer">
+    <h2>Registro</h2>
+    <div>Username:</div>
+    <input type="text" id="RegisterUsername" placeholder="Escribe tu usuario"/>
+    <div>Password:</div>
+    <input type="password" id="RegisterPassword" placeholder="Escribe tu contraseña"/>
+    <p id="RegisterMsg" class="errorMessage"></p>
+    <button onclick="registerUser()">Registrarse</button>
+    <p style="margin-top:10px; cursor:pointer; color:blue;" onclick="goToLogin()">Login</p>
+</div>
+
+<script>
+    const regUsername = document.getElementById("RegisterUsername");
+    const regPassword = document.getElementById("RegisterPassword");
+    const regMsg = document.getElementById("RegisterMsg");
+
+    function registerUser() {
+        const username = regUsername.value.trim();
+        const password = regPassword.value.trim();
+        if (!username || !password) { regMsg.textContent = "Campos vacíos"; return; }
+
+        fetch("/auth/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password })
+        })
+        .then(res => res.json())
+        .then(data => {
+            regMsg.textContent = data.message;
+            if (data.status === "ok") {
+                window.location.href = "/chat.html"; 
+            }
+        })
+        .catch(err => { console.error(err); regMsg.textContent = "Error al conectar con el servidor"; });
+    }
+
+    function goToLogin() { window.location.href = "/chat.html"; }
+</script>
+
+</body>
+</html>

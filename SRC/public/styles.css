@@ -2,157 +2,90 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.FullScreenObject {
-    width: 100vw;
+body {
+    font-family: Arial, sans-serif;
+    background: #f5f5f5;
     height: 100vh;
-    background: linear-gradient(135deg, #667eea, #764ba2);
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
-/* ----------------- LOGIN ----------------- */
-#LoginContainer {
-    background: rgba(255,255,255,0.95);
-    padding: 25px 30px;
-    border-radius: 15px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
-    text-align: center;
-    width: 260px;
-    margin-bottom: 30px; 
-}
 
-#LoginContainer div {
-    margin-top: 10px;
-    font-weight: bold;
-    text-align: left;
-}
-
-#LoginContainer input {
-    width: 100%;
-    padding: 8px 10px;
-    margin: 5px 0 10px 0;
-    border-radius: 10px;
-    border: 1px solid #ccc;
-    font-size: 14px;
-}
-
-#LoginContainer button {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
-    padding: 10px 18px;
-    border: none;
+#LoginContainer,
+#RegisterContainer {
+    background: #ffffff;
+    padding: 30px 40px;
     border-radius: 12px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 14px;
-    margin-top: 5px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    width: 320px;
+    text-align: center;
 }
+
+
+h2 {
+    margin-bottom: 20px;
+    color: #333;
+}
+
+
+input[type="text"],
+input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0 15px 0;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+
+button {
+    width: 100%;
+    padding: 10px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
 
 .errorMessage {
-    color: #ff4d4f;
-    font-size: 13px;
-    height: 18px;
-    margin-bottom: 8px;
+    color: red;
+    font-size: 14px;
+    margin-bottom: 10px;
 }
 
 
-.ChatContainer {
-    display: flex;
-    flex-direction: column;
-    height: 70%;
-    width: 80%;
-    max-width: 700px;
-    background: rgba(255,255,255,0.95);
-    border-radius: 15px;
-    overflow: hidden;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.25);
-    padding: 10px;
+p {
+    margin-top: 10px;
+    font-size: 14px;
 }
 
-.MessageContainer {
-    flex: 1;
-    padding: 10px;
-    overflow-y: auto;
-    background-color: #f3f6fb;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+p a {
+    color: #007BFF;
+    text-decoration: none;
 }
 
-.MessageContainer p {
-    padding: 8px 12px;
-    border-radius: 15px;
-    max-width: 65%;
-    word-wrap: break-word;
-    animation: slideUp 0.3s forwards;
+p a:hover {
+    text-decoration: underline;
 }
 
-@keyframes slideUp {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
-}
 
-.MyMessage {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
-    align-self: flex-end;
-    text-align: right;
-    margin-bottom: 5px;
+body h2 {
+    font-size: 22px;
+    color: #333;
 }
-
-.OtherMessage {
-    background: linear-gradient(135deg, #e0e0e0, #cfcfcf);
-    color: black;
-    align-self: flex-start;
-    text-align: left;
-    margin-bottom: 5px;
-}
-
-.InputContainer {
-    display: flex;
-    padding: 8px;
-    border-top: 1px solid #ccc;
-    background-color: #fff;
-    gap: 8px;
-}
-
-.InputContainer input {
-    flex: 1;
-    padding: 8px 12px;
-    border-radius: 15px;
-    border: 1px solid #ccc;
-    font-size: 13px;
-}
-
-.InputContainer button {
-    padding: 8px 14px;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
-    border: none;
-    border-radius: 15px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 13px;
-}
-
-.InputContainer button:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-}
-
-.MessageContainer::-webkit-scrollbar {
-    width: 6px;
-}
-
-.MessageContainer::-webkit-scrollbar-thumb {
-    background-color: rgba(0,0,0,0.12);
-    border-radius: 4px;
-}
-
-.MessageContainer::-webkit-scrollbar-track {
-    background: transparent;
+body p {
+    margin-top: 20px;
+    font-size: 16px;
 }

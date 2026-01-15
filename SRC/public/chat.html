@@ -1,151 +1,51 @@
 <!DOCTYPE html>
-<html class = "FullScreenObject">
-    <head>
-        <title>Chat En Clase </title>
-        <link rel="stylesheet" href="styles.css">
-    </head>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
 
-    <header>
+<div id="LoginContainer">
+    <h2>Login</h2>
+    <div>Username:</div>
+    <input type="text" id="LoginUsername" placeholder="Escribe tu usuario"/>
+    <div>Password:</div>
+    <input type="password" id="LoginPassword" placeholder="Escribe tu contraseña"/>
+    <p id="LoginErrorMessage" class="errorMessage"></p>
+    <button onclick="loginUser()">Login</button>
+    <p style="margin-top:10px; cursor:pointer; color:blue;" onclick="goToRegister()">Regístrate</p>
+</div>
 
-    </header>
-        
-    <body class = "FullScreenObject">
-        <div id="LoginContainer">
-                <div>Username:</div>
-                <input type = "text" id = "UserNameInput"/>
-                <div>Password:</div>
-                <input type = "password" id = "PasswordInput"/>
-                <p id="LoginErrorMessage", class="errorMessage"></p>
-                <button onclick="TryLogin()"> Try Login </button>
-        </div>
+<script>
+    const loginUsername = document.getElementById("LoginUsername");
+    const loginPassword = document.getElementById("LoginPassword");
+    const loginMsg = document.getElementById("LoginErrorMessage");
 
-       <div class = "ChatContainer" id="ChatContainer">
-            <div id = "MessageContainer" class="MessageContainer">
-            </div>
-            <div class = "InputContainer">
-                <div>Message Box:</div>
-                <input type = "text" id = "MensageInput"/>
-                <button onclick="SendMensage()" class = "MessageButton"> send </button>
-            </div>
-        </div>
-    </body>
+    function loginUser() {
+        const username = loginUsername.value.trim();
+        const password = loginPassword.value.trim();
+        if (!username || !password) { loginMsg.textContent = "Campos vacíos"; return; }
 
-
-    <footer>
-
-    </footer>
-
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
-
-        var socket = io();
-        
-        var ChatContainer = document.getElementById("ChatContainer");
-        var LoginContainer = document.getElementById("LoginContainer");
-        var passwordField = document.getElementById("UserInput");
-        var LoginErrorMessage = document.getElementById("LoginErrorMessage");
-
-        ChatContainer.hidden = true;
-
-        var messageContainer = document.getElementById("MessageContainer");
-        var usernameField = document.getElementById("UserInput");
-
-        var inputField = document.getElementById("MessageInput");
-
-        function CreateMessageWithData(messageData)
-        {
-            var msgParagraph = document.createElement("p");
-            msgParagraph.textContent = messageData.text;
-
-        if(messageData.username == UsernameField.value)
-        {
-            msgParagraph.classList.add("MyMessage");
-        }
-        else
-        {
-             msgParagraph.classList.add("OtherMessage");
-        }
-
-
-            messageContainer.appendChild(msgParagraph);
-        }
-
-
-        socket.on("ServerMessageToClient", (messageData) => {
-            CreateMessageWithData(messageData);
+        fetch("/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password })
         })
-
-        socket.on("ServerResponseRequestMessageListToServer", (msgDataList) => {
-
-            messageContainer.value = "";
-
-            for(data of msgDataList)
-            {
-            CreateMessageWithData(messageData);
+        .then(res => res.json())
+        .then(data => {
+            loginMsg.textContent = data.message;
+            if (data.status === "ok") {
+                window.location.href = "/entraste.html";
             }
         })
+        .catch(err => { console.error(err); loginMsg.textContent = "Error al conectar con el servidor"; });
+    }
 
-        function SendMensage()
-        {
-            if(inputField.value)
-            {
-                var username = UsernameField.value;
-                var text = inputField.value;
+    function goToRegister() { window.location.href = "/register.html"; }
+</script>
 
-                var messageData = {
-                    username: username, 
-                    text: text
-                }
-
-                socket.emit("ClientMessageToServer", messageData);
-                inputField.value = "";
-            }
-        }
-
-        socket.emit("ClientRequestMessageListToServer");
-
-        function TryLogin()
-        {
-            LoginErrorMessage = "";
-
-
-        if(usernameField.value == "" | passwordField.value == "")
-        {
-            LoginErrorMessage.value = "User or Password is blank"
-            return
-        }
-
-            var loginData = {
-                username: usernameField.value,
-                password: passwordField.value
-            }
-
-            socket.emit("loginRequest", loginData);
-
-        }
-
-        socket.on("LoginResponse", (loginResponseData) => {
-
-            if(loginResponseData.status == "error")
-        {
-            var errorMessage = loginResponseData.messageContainer;
-            if(errorMessage == "")
-            {
-                errorMessage = "Unknown";
-            }
-
-        LoginErrorMessage.textContent = "errorMessage";
-        return
-
-        LoginContainer.hidden = true;
-        ChatContainer.hidden = false;
-
-        console.log(loginResponseData);
-
-        }
-
-    })
-
-    </script>
-
+</body>
 </html>

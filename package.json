@@ -18,7 +18,9 @@
   },
   "homepage": "https://bitbucket.org/ubuntu_class2025/server2025_2026#readme",
   "dependencies": {
-    "express": "4.21.2",
+    "bcryptjs": "^3.0.3",
+    "express": "^4.21.2",
+    "express-session": "^1.18.2",
     "ip": "^2.0.1",
     "morgan": "^1.10.1",
     "mysql": "^2.18.1",

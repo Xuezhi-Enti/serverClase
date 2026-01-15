@@ -21,11 +21,6 @@ router.get("/", (req, res) => {
     res.json(allCharacter[req.query.id]);
 })
 
-
-//quiero poner en el url lo siguiente y modificar el id y ir cambiando de pagina
-//http://10.40.2.137:3000/characters/?id=0 -> capitana
-//http://10.40.2.137:3000/characters/?id=1 -> lolollolo
-
 router.get("/1", (req, res) => {
     const characters = {
         "name": "Capitana Test",
