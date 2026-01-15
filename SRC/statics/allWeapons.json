@@ -1,0 +1,19 @@
+[
+    {
+        "type" : "Sword",
+        "damage" : "10",
+        "range" : "2"
+    },
+
+    {
+        "type" : "Gun",
+        "damage" : "10",
+        "range" : "5"
+    },
+
+    {
+        "type" : "Hand",
+        "damage" : "5",
+        "range" : "1"
+    }
+]
