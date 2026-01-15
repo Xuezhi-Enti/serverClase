@@ -1,0 +1,135 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\babyf\\sistemasVisualizer\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{1BFBCF77-C946-4735-8614-F1262DC95B8B}|Assembly-CSharp.csproj|c:\\users\\babyf\\sistemasvisualizer\\assets\\sripts\\ui\\replaylistui.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1BFBCF77-C946-4735-8614-F1262DC95B8B}|Assembly-CSharp.csproj|solutionrelative:assets\\sripts\\ui\\replaylistui.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1BFBCF77-C946-4735-8614-F1262DC95B8B}|Assembly-CSharp.csproj|c:\\users\\babyf\\sistemasvisualizer\\assets\\sripts\\grid\\nodegrid.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1BFBCF77-C946-4735-8614-F1262DC95B8B}|Assembly-CSharp.csproj|solutionrelative:assets\\sripts\\grid\\nodegrid.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1BFBCF77-C946-4735-8614-F1262DC95B8B}|Assembly-CSharp.csproj|c:\\users\\babyf\\sistemasvisualizer\\assets\\sripts\\ui\\uimanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1BFBCF77-C946-4735-8614-F1262DC95B8B}|Assembly-CSharp.csproj|solutionrelative:assets\\sripts\\ui\\uimanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1BFBCF77-C946-4735-8614-F1262DC95B8B}|Assembly-CSharp.csproj|C:\\Users\\babyf\\sistemasVisualizer\\assets\\sripts\\network\\socketmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1BFBCF77-C946-4735-8614-F1262DC95B8B}|Assembly-CSharp.csproj|solutionrelative:assets\\sripts\\network\\socketmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1BFBCF77-C946-4735-8614-F1262DC95B8B}|Assembly-CSharp.csproj|C:\\Users\\babyf\\sistemasVisualizer\\assets\\sripts\\ui\\roomlistui.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1BFBCF77-C946-4735-8614-F1262DC95B8B}|Assembly-CSharp.csproj|solutionrelative:assets\\sripts\\ui\\roomlistui.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1BFBCF77-C946-4735-8614-F1262DC95B8B}|Assembly-CSharp.csproj|C:\\Users\\babyf\\sistemasVisualizer\\assets\\sripts\\grid\\gridvisualizer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1BFBCF77-C946-4735-8614-F1262DC95B8B}|Assembly-CSharp.csproj|solutionrelative:assets\\sripts\\grid\\gridvisualizer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1BFBCF77-C946-4735-8614-F1262DC95B8B}|Assembly-CSharp.csproj|C:\\Users\\babyf\\sistemasVisualizer\\assets\\sripts\\grid\\jewelvisual.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1BFBCF77-C946-4735-8614-F1262DC95B8B}|Assembly-CSharp.csproj|solutionrelative:assets\\sripts\\grid\\jewelvisual.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 2,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "NodeGrid.cs",
+              "DocumentMoniker": "C:\\Users\\babyf\\sistemasVisualizer\\Assets\\Sripts\\Grid\\NodeGrid.cs",
+              "RelativeDocumentMoniker": "Assets\\Sripts\\Grid\\NodeGrid.cs",
+              "ToolTip": "C:\\Users\\babyf\\sistemasVisualizer\\Assets\\Sripts\\Grid\\NodeGrid.cs",
+              "RelativeToolTip": "Assets\\Sripts\\Grid\\NodeGrid.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAIsAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-14T22:04:30.517Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "UIManager.cs",
+              "DocumentMoniker": "C:\\Users\\babyf\\sistemasVisualizer\\Assets\\Sripts\\UI\\UIManager.cs",
+              "RelativeDocumentMoniker": "Assets\\Sripts\\UI\\UIManager.cs",
+              "ToolTip": "C:\\Users\\babyf\\sistemasVisualizer\\Assets\\Sripts\\UI\\UIManager.cs",
+              "RelativeToolTip": "Assets\\Sripts\\UI\\UIManager.cs",
+              "ViewState": "AgIAAEUAAAAAAAAAAAAmwEMAAAAMAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-14T22:02:44.201Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "ReplayListUI.cs",
+              "DocumentMoniker": "C:\\Users\\babyf\\sistemasVisualizer\\Assets\\Sripts\\UI\\ReplayListUI.cs",
+              "RelativeDocumentMoniker": "Assets\\Sripts\\UI\\ReplayListUI.cs",
+              "ToolTip": "C:\\Users\\babyf\\sistemasVisualizer\\Assets\\Sripts\\UI\\ReplayListUI.cs",
+              "RelativeToolTip": "Assets\\Sripts\\UI\\ReplayListUI.cs",
+              "ViewState": "AgIAACAAAAAAAAAAAAAAADkAAABIAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-14T22:01:48.765Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "RoomListUI.cs",
+              "DocumentMoniker": "C:\\Users\\babyf\\sistemasVisualizer\\Assets\\Sripts\\UI\\RoomListUI.cs",
+              "RelativeDocumentMoniker": "Assets\\Sripts\\UI\\RoomListUI.cs",
+              "ToolTip": "C:\\Users\\babyf\\sistemasVisualizer\\Assets\\Sripts\\UI\\RoomListUI.cs",
+              "RelativeToolTip": "Assets\\Sripts\\UI\\RoomListUI.cs",
+              "ViewState": "AgIAACQAAAAAAAAAAAAwwDEAAAAdAAAAAAAAAA==",
+              "Icon": "00000000-0000-0000-0000-000000000000.000000|iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAADBSURBVDhPY2AYBQwMDAwMN17c\u002BO\u002B1yv2/4ETe/9aLLf7feHH9P7L8vHNz4XxkNhxYLzb/33yo4T8DAwND06GG/16r3FEUCU7khfOR2QwMDAyMMMH3\u002BZ8ZYYK6czX/X06\u002Bzjjv3Nz/xYcLkNXDgausO8OqoDUQPeimogN8LmBC5pADsBqgO1fzPwM0wGA2Ck7kRWGHrQtBuMRzlfv/5sONkEA83PjferEF0YHIwACNRqtF5v8FJ/L\u002B91zpRno0jnAAAA95Yu0ct6ifAAAAAElFTkSuQmCC",
+              "WhenOpened": "2026-01-14T22:01:48.771Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "GridVisualizer.cs",
+              "DocumentMoniker": "C:\\Users\\babyf\\sistemasVisualizer\\Assets\\Sripts\\Grid\\GridVisualizer.cs",
+              "RelativeDocumentMoniker": "Assets\\Sripts\\Grid\\GridVisualizer.cs",
+              "ToolTip": "C:\\Users\\babyf\\sistemasVisualizer\\Assets\\Sripts\\Grid\\GridVisualizer.cs",
+              "RelativeToolTip": "Assets\\Sripts\\Grid\\GridVisualizer.cs",
+              "ViewState": "AgIAAEIAAAAAAAAAAAAowF4AAAAIAAAAAAAAAA==",
+              "Icon": "00000000-0000-0000-0000-000000000000.000000|iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAADBSURBVDhPY2AYBQwMDAwMN17c\u002BO\u002B1yv2/4ETe/9aLLf7feHH9P7L8vHNz4XxkNhxYLzb/33yo4T8DAwND06GG/16r3FEUCU7khfOR2QwMDAyMMMH3\u002BZ8ZYYK6czX/X06\u002Bzjjv3Nz/xYcLkNXDgausO8OqoDUQPeimogN8LmBC5pADsBqgO1fzPwM0wGA2Ck7kRWGHrQtBuMRzlfv/5sONkEA83PjferEF0YHIwACNRqtF5v8FJ/L\u002B91zpRno0jnAAAA95Yu0ct6ifAAAAAElFTkSuQmCC",
+              "WhenOpened": "2026-01-14T22:01:48.772Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "SocketManager.cs",
+              "DocumentMoniker": "C:\\Users\\babyf\\sistemasVisualizer\\Assets\\Sripts\\network\\SocketManager.cs",
+              "RelativeDocumentMoniker": "Assets\\Sripts\\network\\SocketManager.cs",
+              "ToolTip": "C:\\Users\\babyf\\sistemasVisualizer\\Assets\\Sripts\\network\\SocketManager.cs",
+              "RelativeToolTip": "Assets\\Sripts\\network\\SocketManager.cs",
+              "ViewState": "AgIAAHoAAAAAAAAAAAAlwCcAAAAiAAAAAAAAAA==",
+              "Icon": "00000000-0000-0000-0000-000000000000.000000|iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAADBSURBVDhPY2AYBQwMDAwMN17c\u002BO\u002B1yv2/4ETe/9aLLf7feHH9P7L8vHNz4XxkNhxYLzb/33yo4T8DAwND06GG/16r3FEUCU7khfOR2QwMDAyMMMH3\u002BZ8ZYYK6czX/X06\u002Bzjjv3Nz/xYcLkNXDgausO8OqoDUQPeimogN8LmBC5pADsBqgO1fzPwM0wGA2Ck7kRWGHrQtBuMRzlfv/5sONkEA83PjferEF0YHIwACNRqtF5v8FJ/L\u002B91zpRno0jnAAAA95Yu0ct6ifAAAAAElFTkSuQmCC",
+              "WhenOpened": "2026-01-14T22:01:48.773Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "JewelVisual.cs",
+              "DocumentMoniker": "C:\\Users\\babyf\\sistemasVisualizer\\Assets\\Sripts\\Grid\\JewelVisual.cs",
+              "RelativeDocumentMoniker": "Assets\\Sripts\\Grid\\JewelVisual.cs",
+              "ToolTip": "C:\\Users\\babyf\\sistemasVisualizer\\Assets\\Sripts\\Grid\\JewelVisual.cs",
+              "RelativeToolTip": "Assets\\Sripts\\Grid\\JewelVisual.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAA3AAAAAAAAAA==",
+              "Icon": "00000000-0000-0000-0000-000000000000.000000|iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAADBSURBVDhPY2AYBQwMDAwMN17c\u002BO\u002B1yv2/4ETe/9aLLf7feHH9P7L8vHNz4XxkNhxYLzb/33yo4T8DAwND06GG/16r3FEUCU7khfOR2QwMDAyMMMH3\u002BZ8ZYYK6czX/X06\u002Bzjjv3Nz/xYcLkNXDgausO8OqoDUQPeimogN8LmBC5pADsBqgO1fzPwM0wGA2Ck7kRWGHrQtBuMRzlfv/5sONkEA83PjferEF0YHIwACNRqtF5v8FJ/L\u002B91zpRno0jnAAAA95Yu0ct6ifAAAAAElFTkSuQmCC",
+              "WhenOpened": "2026-01-14T22:01:48.774Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

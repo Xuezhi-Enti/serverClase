@@ -136,6 +136,30 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
+
+# =========================
+# Unity generated folders
+# =========================
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+
+# =========================
+# Memory captures
+# =========================
+[Mm]emoryCaptures/
+
+# =========================
+# Asset meta cache
+# =========================
+.
+
+
+
 ### Node Patch ###
 # Serverless Webpack directories
 .webpack/
