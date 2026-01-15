@@ -3,7 +3,6 @@ const mysql = require("mysql");
 const bcrypt = require("bcryptjs");
 const session = require("express-session");
 const path = require("path");
-
 const app = express();
 
 app.use(express.json());
@@ -13,7 +12,6 @@ app.use(session({
     resave: false,
     saveUninitialized: true
 }));
-
 app.use(express.static(path.join(__dirname, "public")));
 
 const connection = mysql.createConnection({
@@ -31,9 +29,24 @@ connection.connect(err => {
     console.log("Base de datos conectada");
 });
 
-app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "public/chat.html"));
+let rooms = [
+    { id: 1, name: "Sala General", desc: "Sala por defecto", users: 0 }
+];
+
+app.get("/api/rooms", (req, res) => res.json(rooms));
+
+app.post("/api/rooms", (req, res) => {
+    const { name, desc } = req.body;
+    if (!name) return res.status(400).send("Nombre requerido");
+
+    const existing = rooms.find(r => r.name === name);
+    if (existing) return res.sendStatus(200);
+
+    rooms.push({ id: Date.now(), name, desc, users: 0 });
+    res.sendStatus(200);
 });
+
+app.get("/", (req, res) => res.sendFile(path.join(__dirname, "public/chat.html")));
 
 app.post("/auth/register", (req, res) => {
     const { username, password } = req.body;
@@ -77,12 +90,7 @@ app.post("/auth/login", (req, res) => {
     );
 });
 
-app.get("/entraste.html", (req, res, next) => {
-    if (!req.session.userId) return res.redirect("/chat.html");
-    next();
-}, (req, res) => {
-    res.sendFile(path.join(__dirname, "public/entraste.html"));
-});
+app.get("/entraste.html", (req, res) => res.sendFile(path.join(__dirname, "public/entraste.html")));
 
 app.get("/users", (req, res) => {
     connection.query("SELECT id, username, created_at FROM users", (err, results) => {
@@ -91,22 +99,27 @@ app.get("/users", (req, res) => {
     });
 });
 
+const http = require("http").createServer(app);
+const { Server } = require("socket.io");
+const io = new Server(http);
+
+io.on("connection", socket => {
+    socket.on("joinRoom", roomId => {
+        const room = rooms.find(r => r.id == roomId);
+        if (!room) return;
+
+        socket.join(roomId);
+        room.users++;
+        io.to(roomId).emit("updateUsers", room.users);
+        io.emit("updateRooms", rooms);
+
+        socket.on("disconnect", () => {
+            room.users--;
+            io.to(roomId).emit("updateUsers", room.users);
+            io.emit("updateRooms", rooms);
+        });
+    });
+});
+
 let PORT = 3000;
-
-function startServer(port) {
-    const server = app.listen(port, () => {
-        console.log(`Servidor corriendo en http://localhost:${port}`);
-    });
-
-    server.on("error", (err) => {
-        if (err.code === "EADDRINUSE") {
-            console.log(`Puerto ${port} en uso, intentando con ${port + 1}...`);
-            PORT = port + 1;
-            startServer(PORT);
-        } else {
-            console.error(err);
-        }
-    });
-}
-
-startServer(PORT);
+http.listen(PORT, () => console.log(`Servidor corriendo en http://localhost:${PORT}`));

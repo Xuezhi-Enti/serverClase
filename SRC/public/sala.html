@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Sala</title>
+<style>
+body {
+    margin: 0;
+    height: 100vh;
+    background: #ffffff;
+    font-family: sans-serif;
+    color: rgb(0, 0, 0);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 40px;
+}
+h2 {
+    margin-bottom: 10px;
+}
+#usersCount {
+    margin-bottom: 30px;
+}
+#wasd-container {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    display: grid;
+    grid-template-columns: 60px 60px;
+    grid-template-rows: 60px 60px;
+    gap: 10px;
+}
+.key {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 60px;
+    height: 60px;
+    border-radius: 10px;
+    font-size: 24px;
+    font-weight: bold;
+    color: #fff;
+    transition: transform 0.1s, filter 0.1s;
+    user-select: none;
+}
+.key.active {
+    transform: scale(1.2);
+    filter: brightness(1.5);
+}
+.w { background: #ff69b4; grid-column: 2; grid-row: 1; }
+.a { background: #32cd32; grid-column: 1; grid-row: 2; }
+.s { background: #1e90ff; grid-column: 2; grid-row: 2; }
+.d { background: #ffea00; grid-column: 3; grid-row: 2; }
+</style>
+</head>
+<body>
+
+<h2 id="roomName">Sala</h2>
+<p id="usersCount">0/4 personas</p>
+
+<div id="wasd-container">
+  <div class="key w">W</div>
+  <div class="key a">A</div>
+  <div class="key s">S</div>
+  <div class="key d">D</div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const socket = io();
+const params = new URLSearchParams(window.location.search);
+const roomId = params.get("id");
+
+function fetchRoom() {
+    fetch("/api/rooms")
+    .then(res => res.json())
+    .then(rooms => {
+        const room = rooms.find(r => r.id == roomId);
+        if(room) document.getElementById("roomName").innerText = room.name;
+    });
+}
+
+fetchRoom();
+socket.emit("joinRoom", roomId);
+socket.on("updateUsers", users => {
+    document.getElementById("usersCount").innerText = users + "/4 personas";
+});
+
+document.addEventListener('keydown', e => {
+    const key = e.key.toLowerCase();
+    const el = document.querySelector(`.key.${key}`);
+    if(el) el.classList.add('active');
+});
+document.addEventListener('keyup', e => {
+    const key = e.key.toLowerCase();
+    const el = document.querySelector(`.key.${key}`);
+    if(el) el.classList.remove('active');
+});
+</script>
+
+</body>
+</html>

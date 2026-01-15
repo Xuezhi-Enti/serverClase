@@ -2,72 +2,147 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Teclas Interactivas</title>
+<title>Salas</title>
 <style>
-  body {
+body {
     margin: 0;
-    height: 100vh;
-    background: #222;
+    background: #e9e9e9;
     font-family: sans-serif;
-    overflow: hidden;
-  }
-
-  .container {
-    position: fixed;
-    bottom: 20px;
-    left: 20px; 
+    color: rgb(0, 0, 0);
+}
+.rooms-container {
+    padding: 20px;
+}
+.rooms-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+#addRoomBtn {
+    padding: 8px 14px;
+    border-radius: 20px;
+    border: none;
+    background: #433af0;
+    color: white;
+    cursor: pointer;
+}
+#rooms {
     display: grid;
-    grid-template-columns: 60px 60px;
-    grid-template-rows: 60px 60px;
-    gap: 10px;
-  }
-
-  .key {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+.room {
+    background: #ffffff;
+    border-radius: 25px;
+    padding: 20px;
+}
+.room button {
+    margin-top: 10px;
+    width: 100%;
+    border: none;
+    border-radius: 20px;
+    padding: 8px;
+    cursor: pointer;
+    background: #35ee79;
+    color: black;
+}
+.room.full button {
+    background: #888;
+    cursor: not-allowed;
+}
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 60px;
-    height: 60px;
-    border-radius: 10px;
-    font-size: 24px;
-    font-weight: bold;
-    color: #fff;
-    transition: transform 0.1s, filter 0.1s;
-    user-select: none;
-  }
-
-  .key.active {
-    transform: scale(1.2);
-    filter: brightness(1.5);
-  }
-
-  .w { background: #ff69b4; grid-column: 2; grid-row: 1; }  
-  .a { background: #32cd32; grid-column: 1; grid-row: 2; }  
-  .s { background: #1e90ff; grid-column: 2; grid-row: 2; } 
-  .d { background: #ffea00; color: #000; grid-column: 3; grid-row: 2; }
+}
+.modal-content {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 20px;
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.hidden {
+    display: none;
+}
 </style>
 </head>
 <body>
 
-<div class="container">
-  <div class="key w">W</div>
-  <div class="key a">A</div>
-  <div class="key s">S</div>
-  <div class="key d">D</div>
+<div class="rooms-container">
+    <div class="rooms-header">
+        <h2>Salas</h2>
+        <button id="addRoomBtn">+ Add</button>
+    </div>
+    <div id="rooms"></div>
 </div>
 
-<script>
-  document.addEventListener('keydown', (e) => {
-    const key = e.key.toLowerCase();
-    const el = document.querySelector(`.key.${key}`);
-    if (el) el.classList.add('active');
-  });
+<div id="modal" class="modal hidden">
+    <div class="modal-content">
+        <h3>Nueva sala</h3>
+        <input type="text" id="roomName" placeholder="Nombre de la sala">
+        <textarea id="roomDesc" placeholder="Descripción"></textarea>
+        <button id="createRoom">Crear</button>
+        <button id="closeModal">Cancelar</button>
+    </div>
+</div>
 
-  document.addEventListener('keyup', (e) => {
-    const key = e.key.toLowerCase();
-    const el = document.querySelector(`.key.${key}`);
-    if (el) el.classList.remove('active');
-  });
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const socket = io();
+const roomsDiv = document.getElementById("rooms");
+const modal = document.getElementById("modal");
+
+function fetchRooms() {
+    fetch("/api/rooms")
+    .then(res => res.json())
+    .then(data => renderRooms(data));
+}
+
+function renderRooms(rooms) {
+    roomsDiv.innerHTML = "";
+    rooms.forEach(room => {
+        const div = document.createElement("div");
+        div.className = "room" + (room.users >= 4 ? " full" : "");
+        div.innerHTML = `
+            <h3>${room.name}</h3>
+            <p>${room.desc}</p>
+            <p class="usersCount">${room.users}/4 personas</p>
+            <button ${room.users >= 4 ? "disabled" : ""}>Entrar</button>
+        `;
+        div.querySelector("button").addEventListener("click", () => {
+            if(room.users < 4) {
+                window.location.href = `/sala.html?id=${room.id}`;
+            }
+        });
+        roomsDiv.appendChild(div);
+    });
+}
+
+document.getElementById("addRoomBtn").onclick = () => modal.classList.remove("hidden");
+document.getElementById("closeModal").onclick = () => modal.classList.add("hidden");
+document.getElementById("createRoom").onclick = () => {
+    const name = document.getElementById("roomName").value;
+    const desc = document.getElementById("roomDesc").value;
+    if(!name) return;
+    fetch("/api/rooms", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, desc })
+    }).then(() => {
+        modal.classList.add("hidden");
+        fetchRooms();
+    });
+};
+
+socket.on("updateRooms", rooms => renderRooms(rooms));
+fetchRooms();
 </script>
 
 </body>
