@@ -123,3 +123,143 @@ io.on("connection", socket => {
 
 let PORT = 3000;
 http.listen(PORT, () => console.log(`Servidor corriendo en http://localhost:${PORT}`));
+
+
+//SOKETS
+
+
+const GameRoom = require('./gameLogic/GameRoom');
+
+// Store active rooms
+const activeRooms = new Map(); // roomId -> GameRoom instance
+
+io.on('connection', (socket) => {
+  console.log('Client connected:', socket.id);
+  
+  // Unity viewer events
+  socket.on('getRoomList', () => {
+    const roomList = Array.from(activeRooms. values()).map(room => ({
+      roomId: room.roomId,
+      roomName: room.roomName,
+      playerCount: Object.keys(room.players).length,
+      maxPlayers: 2,
+      status: room.status
+    }));
+    socket.emit('roomList', roomList);
+  });
+  
+  socket.on('joinRoomAsViewer', (roomId) => {
+    const room = activeRooms.get(roomId);
+    if (!room) {
+      socket.emit('error', 'Room not found');
+      return;
+    }
+    
+    socket.join(roomId);
+    room.addViewer(socket. id);
+    
+    // Send grid setup for both players
+    Object.entries(room.grids).forEach(([playerId, grid]) => {
+      socket.emit('gridSetup', {
+        playerId: parseInt(playerId),
+        playerName: room.players[playerId]?.name || 'Waiting.. .',
+        sizeX: grid.width,
+        sizeY: grid.height
+      });
+      
+      // Send current state
+      socket.emit('gridUpdate', {
+        playerId:  parseInt(playerId),
+        playerName: room.players[playerId]?.name || '',
+        updatedNodes: grid. getFullState()
+      });
+    });
+    
+    // Resume game if it was paused
+    if (room.status === 'paused' && room.viewers.length > 0) {
+      room.resumeGame();
+    }
+  });
+  
+  socket.on('leaveRoom', () => {
+    // Find room this socket is in
+    activeRooms.forEach(room => {
+      room.removeViewer(socket.id);
+      
+      // Pause game if no viewers
+      if (room.viewers.length === 0 && room.status === 'playing') {
+        room.pauseGame();
+      }
+    });
+  });
+  
+  // Web player events
+  socket.on('createRoom', (data) => {
+    const roomId = Date.now().toString();
+    const room = new GameRoom(roomId, data.roomName);
+    activeRooms.set(roomId, room);
+    
+    // Broadcast updated room list
+    io.emit('roomList', getRoomList());
+    socket.emit('roomCreated', { roomId });
+  });
+  
+  socket.on('joinRoom', (data) => {
+    const room = activeRooms.get(data.roomId);
+    if (!room) return;
+    
+    const playerId = Object.keys(room.players).length === 0 ? 1 : 2;
+    room.addPlayer(playerId, {
+      id: playerId,
+      name: data. playerName,
+      socket: socket
+    });
+    
+    socket.join(data.roomId);
+    socket.emit('playerAssigned', { playerId });
+    
+    // Notify viewers
+    io.to(data.roomId).emit('playerJoined', {
+      playerId,
+      playerName: data.playerName
+    });
+    
+    // Start game if 2 players
+    if (Object.keys(room.players).length === 2) {
+      room.startGame();
+    }
+  });
+  
+  socket.on('gameInput', (data) => {
+    const room = activeRooms.get(data. roomId);
+    if (!room) return;
+    
+    room.handleInput(data.playerId, data.action);
+  });
+  
+  socket.on('disconnect', () => {
+    // Handle player/viewer disconnect
+    activeRooms.forEach((room, roomId) => {
+      // Remove as viewer
+      room.removeViewer(socket.id);
+      
+      // Remove as player
+      Object.entries(room.players).forEach(([playerId, player]) => {
+        if (player.socket. id === socket.id) {
+          room.removePlayer(playerId);
+          io.to(roomId).emit('playerLeft', { playerId });
+          
+          // End game if player leaves
+          if (room.status === 'playing') {
+            room.endGame();
+          }
+        }
+      });
+      
+      // Delete empty rooms
+      if (Object.keys(room.players).length === 0 && room.viewers.length === 0) {
+        activeRooms.delete(roomId);
+      }
+    });
+  });
+});
