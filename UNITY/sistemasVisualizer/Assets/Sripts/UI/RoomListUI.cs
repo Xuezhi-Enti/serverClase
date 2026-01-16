@@ -151,7 +151,7 @@ public class RoomListUI : MonoBehaviour
         if (SocketManager.Instance != null)
         {
             SocketManager.Instance.JoinRoom(roomId);
-            SceneManager.LoadScene("GameViewer");
+            SceneManager.LoadScene("Gameplay");
         }
         else
         {

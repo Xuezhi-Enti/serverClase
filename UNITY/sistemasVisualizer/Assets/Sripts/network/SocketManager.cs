@@ -10,7 +10,7 @@ public class SocketManager : MonoBehaviour
     public SocketIOUnity socket;
 
     [Header("Server Settings")]
-    [SerializeField] private string serverUrl = "http://localhost:3000";
+    [SerializeField] private string serverUrl = "http://192.168.1.40:3000/";
 
     public event Action OnConnected;
     public event Action OnDisconnected;
@@ -22,6 +22,53 @@ public class SocketManager : MonoBehaviour
     public event Action<string> OnGamePaused;
     public event Action OnGameResumed;
     public event Action<JoinedRoomData> OnJoinedRoom;
+
+    private object _mainThreadQueueLock = new object();
+    private Queue<Action> _mainThreadQueue = new Queue<Action>();
+
+
+    /*
+     * Error parsing room list: get_childCount can only be called from the main thread.
+Constructors and field initializers will be executed from the loading thread when loading a scene.
+Don't use this function in the constructor or field initializers, instead move initialization code to the Awake or Start function.
+UnityEngine.Debug:LogError (object)
+
+    este error indica que hay actiones q tienen q ejecutarse en el hilo principal de Unity. lo solventamos así
+     * */
+    private void EnqueueOnMainThread(Action action)
+    {
+        if (action == null) return;
+
+        //viva los mutex (aqui lockeamos la Queue x eso, así  nos aseguramos q el orden no se corrompe)
+        lock (_mainThreadQueueLock)
+        {
+            _mainThreadQueue.Enqueue(action);
+        }
+    }
+
+    private void Update()
+    {
+        while (true)
+        {
+            Action action;
+            lock (_mainThreadQueueLock)
+            {
+                if (_mainThreadQueue.Count == 0)
+                    return;
+
+                action = _mainThreadQueue.Dequeue();
+            }
+
+            try
+            {
+                action?.Invoke();
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError("[SocketManager] Main-thread action threw: " + ex);
+            }
+        }
+    }
 
     #region Data Classes
 
@@ -130,11 +177,11 @@ public class SocketManager : MonoBehaviour
 
     public async void Connect()
     {
-        Debug.Log($"[SocketManager] Connect() called. url={serverUrl}");
+        EnqueueOnMainThread(() => Debug.Log($"[SocketManager] Connect() called. url={serverUrl}"));
 
         if (socket != null && socket.Connected)
         {
-            Debug.Log("[SocketManager] Already connected!");
+            EnqueueOnMainThread(() => Debug.Log("[SocketManager] Already connected!"));
             return;
         }
 
@@ -143,32 +190,38 @@ public class SocketManager : MonoBehaviour
 
         socket.OnConnected += (sender, e) =>
         {
-            Debug.Log("[SocketManager] Connected (OnConnected fired).");
-            OnConnected?.Invoke();
+            EnqueueOnMainThread(() =>
+            {
+                Debug.Log("[SocketManager] Connected (OnConnected fired).");
+                OnConnected?.Invoke();
+            });
         };
 
         socket.OnDisconnected += (sender, e) =>
         {
-            Debug.Log("[SocketManager] Disconnected.");
-            OnDisconnected?.Invoke();
+            EnqueueOnMainThread(() =>
+            {
+                Debug.Log("[SocketManager] Disconnected.");
+                OnDisconnected?.Invoke();
+            });
         };
 
         socket.OnError += (sender, e) =>
         {
-            Debug.LogError("[SocketManager] Socket Error: " + e);
+            EnqueueOnMainThread(() => Debug.LogError("[SocketManager] Socket Error: " + e));
         };
 
         RegisterEventListeners();
 
         try
         {
-            Debug.Log("[SocketManager] Awaiting ConnectAsync()...");
+            EnqueueOnMainThread(() => Debug.Log("[SocketManager] Awaiting ConnectAsync()..."));
             await socket.ConnectAsync();
-            Debug.Log("[SocketManager] ConnectAsync() returned.");
+            EnqueueOnMainThread(() => Debug.Log("[SocketManager] ConnectAsync() returned."));
         }
         catch (Exception ex)
         {
-            Debug.LogError("[SocketManager] ConnectAsync failed: " + ex);
+            EnqueueOnMainThread(() => Debug.LogError("[SocketManager] ConnectAsync failed: " + ex));
         }
     }
 
@@ -176,148 +229,204 @@ public class SocketManager : MonoBehaviour
     {
         socket.On("connected", response =>
         {
+            string json = null;
+
             try
             {
-                string json = response.GetValue<System.Text.Json.JsonElement>().ToString();
+                json = response.GetValue<System.Text.Json.JsonElement>().ToString();
                 var data = JsonUtility.FromJson<ConnectedData>(json);
-                Debug.Log($"Server welcome: {data.message}, Socket ID: {data.socketId}");
+
+                EnqueueOnMainThread(() =>
+                {
+                    Debug.Log($"Server welcome: {data.message}, Socket ID: {data.socketId}");
+                });
             }
             catch (Exception e)
             {
-                Debug.LogError("Error parsing connected: " + e.Message);
+                var msg = e.Message;
+                EnqueueOnMainThread(() => Debug.LogError("Error parsing connected: " + msg + (json != null ? ("\n" + json) : "")));
             }
         });
 
         socket.On("gamePaused", response =>
         {
+            string json = null;
+
             try
             {
-                string json = response.GetValue<System.Text.Json.JsonElement>().ToString();
+                json = response.GetValue<System.Text.Json.JsonElement>().ToString();
                 var data = JsonUtility.FromJson<GamePausedData>(json);
-                Debug.Log("Game Paused: " + data.reason);
-                OnGamePaused?.Invoke(data.reason);
+
+                EnqueueOnMainThread(() =>
+                {
+                    Debug.Log("Game Paused: " + data.reason);
+                    OnGamePaused?.Invoke(data.reason);
+                });
             }
             catch (Exception e)
             {
-                Debug.LogError("Error parsing gamePaused: " + e.Message);
+                var msg = e.Message;
+                EnqueueOnMainThread(() => Debug.LogError("Error parsing gamePaused: " + msg + (json != null ? ("\n" + json) : "")));
             }
         });
 
         socket.On("gameResumed", response =>
         {
-            Debug.Log("Game Resumed");
-            OnGameResumed?.Invoke();
+            EnqueueOnMainThread(() =>
+            {
+                Debug.Log("Game Resumed");
+                OnGameResumed?.Invoke();
+            });
         });
 
         socket.On("roomList", response =>
         {
+            string json = null;
+
             try
             {
-                string json = response.GetValue<System.Text.Json.JsonElement>().ToString();
-                Debug.Log("Received room list: " + json);
-
+                json = response.GetValue<System.Text.Json.JsonElement>().ToString();
                 var rooms = JsonUtility.FromJson<RoomListWrapper>("{\"rooms\":" + json + "}");
-                Debug.Log("Parsed " + rooms.rooms.Count + " rooms");
 
-                OnRoomListUpdated?.Invoke(rooms.rooms);
+                EnqueueOnMainThread(() =>
+                {
+                    Debug.Log("Received room list: " + json);
+                    Debug.Log("Parsed " + (rooms.rooms != null ? rooms.rooms.Count : 0) + " rooms");
+                    OnRoomListUpdated?.Invoke(rooms.rooms);
+                });
             }
             catch (Exception e)
             {
-                Debug.LogError("Error parsing room list: " + e.Message);
+                var msg = e.Message;
+                EnqueueOnMainThread(() => Debug.LogError("Error parsing room list: " + msg + (json != null ? ("\n" + json) : "")));
             }
         });
 
         socket.On("gridSetup", response =>
         {
+            string json = null;
+
             try
             {
-                string json = response.GetValue<System.Text.Json.JsonElement>().ToString();
-                Debug.Log("Received grid setup: " + json);
-
+                json = response.GetValue<System.Text.Json.JsonElement>().ToString();
                 var gridSetup = JsonUtility.FromJson<GridSetup>(json);
-                Debug.Log($"Grid setup for Player {gridSetup.playerId} ({gridSetup.playerName}): {gridSetup.sizeX}x{gridSetup.sizeY}");
 
-                OnGridSetup?.Invoke(gridSetup);
+                EnqueueOnMainThread(() =>
+                {
+                    Debug.Log("Received grid setup: " + json);
+                    Debug.Log($"Grid setup for Player {gridSetup.playerId} ({gridSetup.playerName}): {gridSetup.sizeX}x{gridSetup.sizeY}");
+                    OnGridSetup?.Invoke(gridSetup);
+                });
             }
             catch (Exception e)
             {
-                Debug.LogError("Error parsing grid setup: " + e.Message);
+                var msg = e.Message;
+                EnqueueOnMainThread(() => Debug.LogError("Error parsing grid setup: " + msg + (json != null ? ("\n" + json) : "")));
             }
         });
 
         socket.On("gridUpdate", response =>
         {
+            string json = null;
+
             try
             {
-                string json = response.GetValue<System.Text.Json.JsonElement>().ToString();
-                Debug.Log("Received grid update: " + json);
-
+                json = response.GetValue<System.Text.Json.JsonElement>().ToString();
                 var gridUpdate = JsonUtility.FromJson<GridUpdate>(json);
-                Debug.Log($"Grid update for Player {gridUpdate.playerId} with {gridUpdate.updatedNodes.Count} nodes");
 
-                OnGridUpdate?.Invoke(gridUpdate);
+                EnqueueOnMainThread(() =>
+                {
+                    Debug.Log("Received grid update: " + json);
+                    Debug.Log($"Grid update for Player {gridUpdate.playerId} with {(gridUpdate.updatedNodes != null ? gridUpdate.updatedNodes.Count : 0)} nodes");
+                    OnGridUpdate?.Invoke(gridUpdate);
+                });
             }
             catch (Exception e)
             {
-                Debug.LogError("Error parsing grid update: " + e.Message);
+                var msg = e.Message;
+                EnqueueOnMainThread(() => Debug.LogError("Error parsing grid update: " + msg + (json != null ? ("\n" + json) : "")));
             }
         });
 
         socket.On("joinedRoom", response =>
         {
+            string json = null;
+
             try
             {
-                string json = response.GetValue<System.Text.Json.JsonElement>().ToString();
-                Debug.Log("Joined room: " + json);
-
+                json = response.GetValue<System.Text.Json.JsonElement>().ToString();
                 var data = JsonUtility.FromJson<JoinedRoomData>(json);
-                OnJoinedRoom?.Invoke(data);
+
+                EnqueueOnMainThread(() =>
+                {
+                    Debug.Log("Joined room: " + json);
+                    OnJoinedRoom?.Invoke(data);
+                });
             }
             catch (Exception e)
             {
-                Debug.LogError("Error parsing joinedRoom: " + e.Message);
+                var msg = e.Message;
+                EnqueueOnMainThread(() => Debug.LogError("Error parsing joinedRoom: " + msg + (json != null ? ("\n" + json) : "")));
             }
         });
 
         socket.On("error", response =>
         {
+            string json = null;
+
             try
             {
-                string json = response.GetValue<System.Text.Json.JsonElement>().ToString();
+                json = response.GetValue<System.Text.Json.JsonElement>().ToString();
                 var data = JsonUtility.FromJson<ErrorData>(json);
-                Debug.LogError("Server error: " + data.message);
+
+                EnqueueOnMainThread(() => Debug.LogError("Server error: " + data.message));
             }
             catch (Exception e)
             {
-                Debug.LogError("Error parsing error message: " + e.Message);
+                var msg = e.Message;
+                EnqueueOnMainThread(() => Debug.LogError("Error parsing error message: " + msg + (json != null ? ("\n" + json) : "")));
             }
         });
 
         socket.On("replayList", response =>
         {
+            string json = null;
+
             try
             {
-                string json = response.GetValue<System.Text.Json.JsonElement>().ToString();
+                json = response.GetValue<System.Text.Json.JsonElement>().ToString();
                 var replays = JsonUtility.FromJson<ReplayListWrapper>("{\"replays\":" + json + "}");
-                OnReplayListReceived?.Invoke(replays.replays);
+
+                EnqueueOnMainThread(() =>
+                {
+                    OnReplayListReceived?.Invoke(replays.replays);
+                });
             }
             catch (Exception e)
             {
-                Debug.LogError("Error parsing replay list: " + e.Message);
+                var msg = e.Message;
+                EnqueueOnMainThread(() => Debug.LogError("Error parsing replay list: " + msg + (json != null ? ("\n" + json) : "")));
             }
         });
 
         socket.On("replayData", response =>
         {
+            string json = null;
+
             try
             {
-                string json = response.GetValue<System.Text.Json.JsonElement>().ToString();
+                json = response.GetValue<System.Text.Json.JsonElement>().ToString();
                 var replayData = JsonUtility.FromJson<ReplayData>(json);
-                OnReplayDataReceived?.Invoke(replayData);
+
+                EnqueueOnMainThread(() =>
+                {
+                    OnReplayDataReceived?.Invoke(replayData);
+                });
             }
             catch (Exception e)
             {
-                Debug.LogError("Error parsing replay data: " + e.Message);
+                var msg = e.Message;
+                EnqueueOnMainThread(() => Debug.LogError("Error parsing replay data: " + msg + (json != null ? ("\n" + json) : "")));
             }
         });
     }
@@ -353,7 +462,7 @@ public class SocketManager : MonoBehaviour
     public void Disconnect()
     {
         if (socket != null && socket.Connected)
-        {   
+        {
             socket.Disconnect();
         }
     }
