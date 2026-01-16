@@ -497,6 +497,15 @@ io.on('connection', (socket) => {
         emitRoomUsers(roomId);
     });
 
+    socket.on('gameInput', (data) => {
+    // data = { roomId, playerId, tecla: a,s,w,d }
+    const room = activeRooms.get(data.roomId);
+    if (room) {
+        room.handleInput(data);
+    }
+  });
+
+
     socket.on('leaveRoom', () => {
         const roomId = socket.currentRoomId;
         if (!roomId) return;
