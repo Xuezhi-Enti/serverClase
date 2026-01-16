@@ -9,7 +9,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(session({
     secret: "miSecretoSuperSecreto",
-    resave: false,
+    resave:  false,
     saveUninitialized: true
 }));
 app.use(express.static(path.join(__dirname, "public")));
@@ -17,7 +17,7 @@ app.use(express.static(path.join(__dirname, "public")));
 const connection = mysql.createConnection({
     host: "localhost",
     user: "root",
-    password: "user",
+    password:  "user",
     database: "mydb"
 });
 
@@ -45,7 +45,7 @@ app.post("/auth/register", (req, res) => {
                 if (err.code === "ER_DUP_ENTRY") return res.json({ status: "error", message: "Usuario ya existe" });
                 return res.json({ status: "error", message: "Error en la base de datos" });
             }
-            res.json({ status: "ok", message: "Usuario registrado. Ahora inicia sesión." });
+            res.json({ status: "ok", message: "Usuario registrado.  Ahora inicia sesión." });
         }
     );
 });
@@ -92,11 +92,12 @@ const activeRooms = new Map();
 // Store replays
 const replays = new Map();
 
-// Simple Room class for testing
-class SimpleGameRoom {
-    constructor(roomId, roomName) {
+// Room class
+class GameRoom {
+    constructor(roomId, roomName, roomDesc = "") {
         this.roomId = roomId;
         this.roomName = roomName;
+        this.roomDesc = roomDesc;
         this.players = {}; // { 1: {id, name, socket}, 2: {id, name, socket} }
         this.viewers = []; // Array of socket IDs
         this.status = 'waiting'; // 'waiting', 'playing', 'paused', 'finished'
@@ -105,15 +106,15 @@ class SimpleGameRoom {
     }
 
     addViewer(socketId) {
-        if (!this.viewers.includes(socketId)) {
-            this.viewers.push(socketId);
-            console.log(`Viewer ${socketId} joined room ${this.roomId}. Total viewers: ${this.viewers.length}`);
+        if (! this.viewers.includes(socketId)) {
+            this.viewers. push(socketId);
+            console.log(`Viewer ${socketId} joined room ${this.roomId}.  Total viewers: ${this.viewers. length}`);
         }
     }
 
     removeViewer(socketId) {
         this.viewers = this.viewers.filter(id => id !== socketId);
-        console.log(`Viewer ${socketId} left room ${this.roomId}. Total viewers: ${this.viewers.length}`);
+        console.log(`Viewer ${socketId} left room ${this.roomId}. Total viewers: ${this. viewers.length}`);
 
         // Pause game if no viewers
         if (this.viewers.length === 0 && this.status === 'playing') {
@@ -123,121 +124,130 @@ class SimpleGameRoom {
 
     addPlayer(playerId, playerData) {
         this.players[playerId] = playerData;
-        console.log(`Player ${playerId} joined room ${this.roomId}`);
+        console.log(`Player ${playerId} (${playerData.name}) joined room ${this.roomId}`);
 
-        // Start game if we have 2 players and at least 1 viewer
-        if (Object.keys(this.players).length === 2 && this.viewers.length > 0) {
+        // Broadcast to all that a player joined
+        this.broadcastToAll('playerJoined', {
+            playerId: playerId,
+            playerName: playerData. name,
+            playerCount: Object.keys(this.players).length
+        });
+
+        // Start game if we have 2 players
+        if (Object.keys(this.players).length === 2) {
             this.startGame();
         }
     }
 
+    removePlayer(playerId) {
+        const playerName = (this.players[playerId] && this.players[playerId].name) || 'Unknown';
+        delete this.players[playerId];
+        console.log(`Player ${playerId} (${playerName}) left room ${this.roomId}`);
+
+        // Broadcast to all that a player left
+        this.broadcastToAll('playerLeft', {
+            playerId: playerId,
+            playerName: playerName,
+            playerCount: Object.keys(this.players).length
+        });
+
+        // Stop game if less than 2 players
+        if (this.status === 'playing' && Object.keys(this.players).length < 2) {
+            this.pauseGame();
+        }
+    }
+
     startGame() {
+        if (this.status === 'playing') return;
+
         this.status = 'playing';
         this.gameStartTime = Date.now();
         console.log(`Game started in room ${this.roomId}`);
 
-        // Send grid setup to all viewers for player 1
+        // Send grid setup to all viewers for both players
         const p1 = this.players[1];
+        const p2 = this.players[2];
+
         const gridSetup1 = {
-            playerId: 1,
-            playerName: (p1 && p1.name) || 'Player 1',
+            playerId:  1,
+            playerName:  (p1 && p1.name) || 'Player 1',
             sizeX: 6,
             sizeY: 12
         };
-        this.broadcastToViewers('gridSetup', gridSetup1);
 
-        // Send grid setup for player 2 if exists
-        const p2 = this.players[2];
-        if (p2) {
-            const gridSetup2 = {
-                playerId: 2,
-                playerName: p2.name || 'Player 2',
-                sizeX: 6,
-                sizeY: 12
-            };
-            this.broadcastToViewers('gridSetup', gridSetup2);
+        const gridSetup2 = {
+            playerId: 2,
+            playerName: (p2 && p2.name) || 'Player 2',
+            sizeX:  6,
+            sizeY: 12
+        };
+
+        this.broadcastToViewers('gridSetup', gridSetup1);
+        this.broadcastToViewers('gridSetup', gridSetup2);
+
+        // Send game started to players
+        this.broadcastToPlayers('gameStarted', {
+            roomId: this.roomId,
+            player1: gridSetup1,
+            player2: gridSetup2
+        });
+
+        // Initialize full grid of orange jewels for both players
+        this.initializeOrangeGrid();
+    }
+
+    initializeOrangeGrid() {
+        // Create full grid of orange jewels (type 5) for both players
+        const updatedNodes = [];
+        
+        for (let x = 0; x < 6; x++) {
+            for (let y = 0; y < 12; y++) {
+                updatedNodes.push({ x: x, y: y, type: 5 }); // 5 = Orange
+            }
         }
 
-        // Send test grid update after 2 seconds
-        setTimeout(() => {
-            this.sendTestGridUpdate();
-        }, 2000);
+        // Send to both players
+        const gridUpdate1 = {
+            playerId: 1,
+            playerName: (this.players[1] && this.players[1].name) || 'Player 1',
+            updatedNodes: updatedNodes
+        };
+
+        const gridUpdate2 = {
+            playerId: 2,
+            playerName: (this.players[2] && this.players[2].name) || 'Player 2',
+            updatedNodes: updatedNodes
+        };
+
+        this.recordFrame(1, gridUpdate1);
+        this.recordFrame(2, gridUpdate2);
+
+        this.broadcastToViewers('gridUpdate', gridUpdate1);
+        this.broadcastToViewers('gridUpdate', gridUpdate2);
+
+        console.log(`Initialized orange grid for room ${this.roomId}`);
     }
 
     pauseGame() {
         this.status = 'paused';
         console.log(`Game paused in room ${this.roomId}`);
-        this.broadcastToAll('gamePaused', { reason: 'No viewers connected' });
+        this.broadcastToAll('gamePaused', { reason: 'Not enough players or no viewers' });
     }
 
     resumeGame() {
-        if (this.viewers.length > 0) {
-            this.status = 'playing';
+        if (this.viewers.length > 0 && Object.keys(this.players).length === 2) {
+            this. status = 'playing';
             console.log(`Game resumed in room ${this.roomId}`);
             this.broadcastToAll('gameResumed', {});
         }
-    }
-
-    sendTestGridUpdate() {
-        if (this.status !== 'playing') return;
-
-        const gridUpdate = {
-            playerId: 1,
-            playerName: (this.players[1] && this.players[1].name) || 'Player 1',
-            updatedNodes: [
-                { x: 0, y: 0, type: 1 },
-                { x: 1, y: 0, type: 2 },
-                { x: 2, y: 0, type: 3 },
-                { x: 0, y: 1, type: 4 },
-                { x: 1, y: 1, type: 5 },
-                { x: 2, y: 1, type: 6 },
-                { x: 3, y: 2, type: 1 },
-                { x: 4, y: 2, type: 2 },
-                { x: 5, y: 2, type: 3 }
-            ]
-        };
-
-        // Record frame for replay
-        this.recordFrame(1, gridUpdate);
-
-        console.log(`Sending test grid update to room ${this.roomId}`);
-        this.broadcastToViewers('gridUpdate', gridUpdate);
-
-        // Send another update in 3 seconds
-        setTimeout(() => {
-            this.sendAnotherTestUpdate();
-        }, 3000);
-    }
-
-    sendAnotherTestUpdate() {
-        if (this.status !== 'playing') return;
-
-        const gridUpdate = {
-            playerId: 1,
-            playerName: (this.players[1] && this.players[1].name) || 'Player 1',
-            updatedNodes: [
-                { x: 0, y: 5, type: 2 },
-                { x: 1, y: 5, type: 2 },
-                { x: 2, y: 5, type: 2 },
-                { x: 3, y: 6, type: 5 },
-                { x: 4, y: 6, type: 5 },
-                { x: 5, y: 6, type: 5 }
-            ]
-        };
-
-        // Record frame for replay
-        this.recordFrame(1, gridUpdate);
-
-        console.log(`Sending second test update to room ${this.roomId}`);
-        this.broadcastToViewers('gridUpdate', gridUpdate);
     }
 
     recordFrame(playerId, gridUpdate) {
         const timestamp = (Date.now() - this.gameStartTime) / 1000; // seconds since game start
         this.replayFrames.push({
             timestamp: timestamp,
-            playerId: playerId,
-            gridUpdate: gridUpdate
+            playerId:  playerId,
+            gridUpdate:  gridUpdate
         });
     }
 
@@ -267,7 +277,7 @@ class SimpleGameRoom {
 
     broadcastToPlayers(event, data) {
         Object.values(this.players).forEach(player => {
-            if (player.socket) {
+            if (player. socket) {
                 player.socket.emit(event, data);
             }
         });
@@ -280,97 +290,77 @@ class SimpleGameRoom {
 
     getRoomInfo() {
         return {
-            roomId: this.roomId,
-            roomName: this.roomName,
-            playerCount: Object.keys(this.players).length,
-            maxPlayers: 2,
+            id: this.roomId,
+            name: this.roomName,
+            desc: this.roomDesc || "",
+            users: Object.keys(this.players).length,
+            maxUsers: 2,
             status: this.status
         };
     }
 }
 
-// Create test rooms on startup
-function createTestRooms() {
-    const testRoom1 = new SimpleGameRoom('room-1', 'Test Room 1');
-    const testRoom2 = new SimpleGameRoom('room-2', 'Test Room 2');
-    const testRoom3 = new SimpleGameRoom('room-3', 'Test Room 3');
-
-    // Add fake players to room 1
-    testRoom1.addPlayer(1, { id: 1, name: 'Player 1', socket: null });
-
-    activeRooms.set('room-1', testRoom1);
-    activeRooms.set('room-2', testRoom2);
-    activeRooms.set('room-3', testRoom3);
-
-    // Create sample replays
-    createSampleReplays();
-
-    console.log('Created 3 test rooms');
+// Helper to build a consistent room list payload for web clients
+function buildRoomList() {
+    return Array.from(activeRooms.values()).map(room => room.getRoomInfo());
 }
 
-function createSampleReplays() {
-    const sampleReplay = {
-        replayId: 'replay-sample-1',
-        roomName: 'Sample Game',
-        date: new Date().toISOString(),
-        player1Name: 'Alice',
-        player2Name: 'Bob',
-        frames: [
-            {
-                timestamp: 0.0,
-                playerId: 1,
-                gridUpdate: {
-                    playerId: 1,
-                    playerName: 'Alice',
-                    updatedNodes: [
-                        { x: 0, y: 0, type: 1 },
-                        { x: 1, y: 0, type: 2 }
-                    ]
-                }
-            },
-            {
-                timestamp: 1.5,
-                playerId: 1,
-                gridUpdate: {
-                    playerId: 1,
-                    playerName: 'Alice',
-                    updatedNodes: [
-                        { x: 2, y: 0, type: 3 },
-                        { x: 3, y: 0, type: 4 }
-                    ]
-                }
-            }
-        ]
-    };
-    replays.set('replay-sample-1', sampleReplay);
-}
-
-createTestRooms();
+// HTTP API used by fetchRooms() in entraste.html
+app.get("/api/rooms", (req, res) => {
+    res.json(buildRoomList());
+});
 
 // ============================================
 // SOCKET.IO EVENT HANDLERS
 // ============================================
 
+function emitRoomUsers(roomId) {
+    const room = activeRooms.get(roomId);
+    if (!room) return;
+    const users = Object.keys(room.players).length;
+    io.to(roomId).emit("updateUsers", users);
+}
+
 io.on('connection', (socket) => {
     console.log(`Client connected: ${socket.id}`);
 
-    // Send welcome message
-    socket.emit('connected', { message: 'Connected to server!', socketId: socket.id });
+    socket.emit('connected', { message: 'Connected to server! ', socketId: socket.id });
 
     // Get room list
     socket.on('getRoomList', () => {
-        const roomList = Array.from(activeRooms.values()).map(room => room.getRoomInfo());
+        const roomList = buildRoomList();
         console.log(`Sending room list to ${socket.id}:`, roomList);
-        socket.emit('roomList', roomList);
+        socket.emit('updateRooms', roomList);
+    });
+
+    // Create new room
+    socket.on('createRoom', (data) => {
+        const { roomName, roomDesc } = data || {};
+        const roomId = `room-${Date.now()}`;
+
+        const newRoom = new GameRoom(
+            roomId,
+            (roomName && String(roomName).trim()) || `Room ${activeRooms.size + 1}`,
+            (roomDesc && String(roomDesc).trim()) || ""
+        );
+
+        activeRooms.set(roomId, newRoom);
+
+        console.log(`Room created: ${roomId} - ${newRoom.roomName}`);
+
+        // Broadcast updated room list to all clients (THIS is what your HTML should listen to)
+        io.emit('updateRooms', buildRoomList());
+
+        socket.emit('roomCreated', { roomId: roomId, roomName: newRoom.roomName });
     });
 
     // Get replay list
     socket.on('getReplayList', () => {
         const replayList = Array.from(replays.values()).map(replay => ({
             replayId: replay.replayId,
-            roomName: replay.roomName,
+            roomName: replay. roomName,
             date: replay.date,
-            player1Name: replay.player1Name,
+            player1Name: replay. player1Name,
             player2Name: replay.player2Name
         }));
         console.log(`Sending replay list to ${socket.id}:`, replayList);
@@ -398,7 +388,7 @@ io.on('connection', (socket) => {
             return;
         }
 
-        // Join the socket.io room
+        // Join the socket. io room
         socket.join(roomId);
         socket.currentRoomId = roomId;
 
@@ -407,25 +397,28 @@ io.on('connection', (socket) => {
 
         // Send confirmation
         socket.emit('joinedRoom', {
-            roomId: roomId,
-            roomName: room.roomName,
+            roomId:  roomId,
+            roomName:  room.roomName,
             status: room.status
         });
 
-        // If game is already playing, send grid setup
-        if (room.status === 'playing' || Object.keys(room.players).length > 0) {
+        // If game is already playing, send grid setup and current state
+        if (room.status === 'playing') {
             const p1 = room.players[1];
-            socket.emit('gridSetup', {
-                playerId: 1,
-                playerName: (p1 && p1.name) || 'Player 1',
-                sizeX: 6,
-                sizeY: 12
-            });
-
             const p2 = room.players[2];
+
+            if (p1) {
+                socket.emit('gridSetup', {
+                    playerId: 1,
+                    playerName: p1.name || 'Player 1',
+                    sizeX: 6,
+                    sizeY: 12
+                });
+            }
+
             if (p2) {
                 socket.emit('gridSetup', {
-                    playerId: 2,
+                    playerId:  2,
                     playerName: p2.name || 'Player 2',
                     sizeX: 6,
                     sizeY: 12
@@ -434,7 +427,7 @@ io.on('connection', (socket) => {
         }
 
         // Resume game if it was paused
-        if (room.status === 'paused') {
+        if (room.status === 'paused' && Object.keys(room.players).length === 2) {
             room.resumeGame();
         }
 
@@ -452,55 +445,46 @@ io.on('connection', (socket) => {
             return;
         }
 
-        // Determine player ID
-        const playerId = Object.keys(room.players).length === 0 ? 1 : 2;
-
-        if (playerId > 2) {
+        if (Object.keys(room.players).length >= 2) {
             socket.emit('error', { message: 'Room is full' });
             return;
         }
 
-        // Join the socket.io room
+        const playerId = Object.keys(room.players).length === 0 ? 1 : 2;
+
         socket.join(roomId);
         socket.currentRoomId = roomId;
         socket.playerId = playerId;
 
-        // Add to room's player list
         room.addPlayer(playerId, {
             id: playerId,
             name: playerName,
             socket: socket
         });
 
-        // Send confirmation
-        socket.emit('playerAssigned', { playerId, playerName });
-
-        // Broadcast to room
-        io.to(roomId).emit('playerJoined', {
+        socket.emit('playerAssigned', { 
             playerId,
-            playerName
+            playerName,
+            roomId,
+            roomName: room.roomName
         });
 
-        console.log(`Player ${playerName} joined room ${roomId} as Player ${playerId}`);
+        // Update everyone
+        io.emit('updateRooms', buildRoomList());
+        emitRoomUsers(roomId);
     });
 
-    // Leave room
     socket.on('leaveRoom', () => {
         const roomId = socket.currentRoomId;
         if (!roomId) return;
 
-        console.log(`Socket ${socket.id} leaving room ${roomId}`);
-
         const room = activeRooms.get(roomId);
         if (room) {
-            // Remove from viewers
             room.removeViewer(socket.id);
+            if (socket.playerId) room.removePlayer(socket.playerId);
 
-            // Remove from players if applicable
-            if (socket.playerId) {
-                delete room.players[socket.playerId];
-                io.to(roomId).emit('playerLeft', { playerId: socket.playerId });
-            }
+            io.emit('updateRooms', buildRoomList());
+            emitRoomUsers(roomId);
         }
 
         socket.leave(roomId);
@@ -508,39 +492,33 @@ io.on('connection', (socket) => {
         delete socket.playerId;
     });
 
-    // Handle disconnect
     socket.on('disconnect', () => {
-        console.log(`Client disconnected: ${socket.id}`);
-
         const roomId = socket.currentRoomId;
         if (roomId) {
             const room = activeRooms.get(roomId);
             if (room) {
                 room.removeViewer(socket.id);
+                if (socket.playerId) room.removePlayer(socket.playerId);
 
-                if (socket.playerId) {
-                    delete room.players[socket.playerId];
-                    io.to(roomId).emit('playerLeft', { playerId: socket.playerId });
-                }
+                io.emit('updateRooms', buildRoomList());
+                emitRoomUsers(roomId);
             }
         }
     });
 
-    // Handle game input (from web players)
+    // Handle game input (from web players) - placeholder for future implementation
     socket.on('gameInput', (data) => {
         const { roomId, playerId, action } = data;
-        console.log(`Player ${playerId} in room ${roomId} pressed: ${action}`);
-
-        // For now, just log it
-        // Later this will be handled by GameRoom logic
+        console.log(`Player ${playerId} in room ${roomId} pressed:  ${action}`);
+        // Future implementation will handle game logic here
     });
 });
 
 let PORT = 3000;
-http.listen(PORT, () => {
+http.listen(PORT, '0.0.0.0', () => {
     console.log(`===========================================`);
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Server running   on http://0.0.0.0:${PORT}`);
+    console.log(`Accessible from host at http://IP:${PORT}`);
     console.log(`Socket.IO ready for connections`);
-    console.log(`Test rooms created: room-1, room-2, room-3`);
     console.log(`===========================================`);
 });

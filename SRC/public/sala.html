@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -82,9 +82,31 @@ function fetchRoom() {
 }
 
 fetchRoom();
-socket.emit("joinRoom", roomId);
+
+// Join the room in the way the server expects (counts as an active player)
+socket.on("connect", () => {
+    const playerName = sessionStorage.getItem("playerName") || prompt("Nombre de jugador:") || "Player";
+    sessionStorage.setItem("playerName", playerName);
+
+    socket.emit("joinRoomAsPlayer", { roomId, playerName });
+});
+
+socket.on("playerAssigned", ({ playerId }) => {
+    console.log("Assigned playerId:", playerId);
+});
+
 socket.on("updateUsers", users => {
-    document.getElementById("usersCount").innerText = users + "/4 personas";
+    // Server rooms are 2-player rooms
+    document.getElementById("usersCount").innerText = users + "/2 personas";
+});
+
+socket.on("error", (e) => {
+    console.error(e);
+});
+
+// Optional: leave cleanly
+window.addEventListener("beforeunload", () => {
+    socket.emit("leaveRoom");
 });
 
 document.addEventListener('keydown', e => {

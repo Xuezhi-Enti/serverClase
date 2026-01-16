@@ -102,22 +102,23 @@ const modal = document.getElementById("modal");
 function fetchRooms() {
     fetch("/api/rooms")
     .then(res => res.json())
-    .then(data => renderRooms(data));
+    .then(data => renderRooms(data))
+    .catch(err => console.error("fetchRooms error:", err));
 }
 
 function renderRooms(rooms) {
     roomsDiv.innerHTML = "";
     rooms.forEach(room => {
         const div = document.createElement("div");
-        div.className = "room" + (room.users >= 4 ? " full" : "");
+        div.className = "room" + (room.users >= room.maxUsers ? " full" : "");
         div.innerHTML = `
             <h3>${room.name}</h3>
-            <p>${room.desc}</p>
-            <p class="usersCount">${room.users}/4 personas</p>
-            <button ${room.users >= 4 ? "disabled" : ""}>Entrar</button>
+            <p>${room.desc || ""}</p>
+            <p class="usersCount">${room.users}/${room.maxUsers} personas</p>
+            <button ${room.users >= room.maxUsers ? "disabled" : ""}>Entrar</button>
         `;
         div.querySelector("button").addEventListener("click", () => {
-            if(room.users < 4) {
+            if (room.users < room.maxUsers) {
                 window.location.href = `/sala.html?id=${room.id}`;
             }
         });
@@ -127,21 +128,31 @@ function renderRooms(rooms) {
 
 document.getElementById("addRoomBtn").onclick = () => modal.classList.remove("hidden");
 document.getElementById("closeModal").onclick = () => modal.classList.add("hidden");
+
 document.getElementById("createRoom").onclick = () => {
-    const name = document.getElementById("roomName").value;
-    const desc = document.getElementById("roomDesc").value;
-    if(!name) return;
-    fetch("/api/rooms", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, desc })
-    }).then(() => {
-        modal.classList.add("hidden");
-        fetchRooms();
-    });
+    const name = document.getElementById("roomName").value.trim();
+    const desc = document.getElementById("roomDesc").value.trim();
+    if (!name) return;
+
+    // Send what the server expects
+    socket.emit("createRoom", { roomName: name, roomDesc: desc });
+
+    document.getElementById("roomName").value = "";
+    document.getElementById("roomDesc").value = "";
+    modal.classList.add("hidden");
 };
 
-socket.on("updateRooms", rooms => renderRooms(rooms));
+// Primary realtime update
+socket.on("updateRooms", (rooms) => {
+    if (Array.isArray(rooms)) renderRooms(rooms);
+});
+
+// Initial sync
+socket.on("connect", () => {
+    socket.emit("getRoomList");
+    fetchRooms(); // optional fallback
+});
+
 fetchRooms();
 </script>
 
