@@ -434,6 +434,29 @@ io.on('connection', (socket) => {
         console.log(`Socket ${socket.id} joined room ${roomId} successfully`);
     });
 
+    // Request current grid state (for viewers joining mid-game)
+    socket.on('requestGridState', () => {
+        const roomId = socket.currentRoomId;
+        if (!roomId) return;
+
+        const room = activeRooms.get(roomId);
+        if (!room || room.status !== 'playing') return;
+
+        // Send the last recorded frames for each player
+        const lastFrames = {};
+        room.replayFrames.forEach(frame => {
+            lastFrames[frame.playerId] = frame.gridUpdate;
+        });
+
+        Object.values(lastFrames).forEach(gridUpdate => {
+            if (gridUpdate) {
+                socket.emit('gridUpdate', gridUpdate);
+            }
+        });
+
+        console.log(`Sent current grid state to viewer ${socket.id}`);
+    });
+
     // Join room as player (Web client)
     socket.on('joinRoomAsPlayer', (data) => {
         const { roomId, playerName } = data;
