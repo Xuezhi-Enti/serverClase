@@ -36,10 +36,10 @@ public class NodeGrid : MonoBehaviour
         [Serializable]
         public class Column
         {
-            public List<Node> nodes = new ();
+            public List<Node> nodes = new();
         }
         
-        public List<Column> columns = new ();
+        public List<Column> columns = new();
 
         [SerializeField]
         private int _playerId;
@@ -49,17 +49,17 @@ public class NodeGrid : MonoBehaviour
         private string _playerName;
         public string PlayerName => _playerName;
 
-        public Grid(GridSetup gridSetup)
+        public Grid(SocketManager.GridSetup gridSetup)
         {
             _playerId = gridSetup.playerId;
-            _playerName = gridSetup. playerName;
+            _playerName = gridSetup.playerName;
 
             for (int x = 0; x < gridSetup.sizeX; x++)
             {
-                columns.Add(new ());
-                for (int y = 0; y < gridSetup. sizeY; y++)
+                columns.Add(new());
+                for (int y = 0; y < gridSetup.sizeY; y++)
                 {
-                    columns[x]. nodes.Add(new Node(Node.JewelType.None, x, y));
+                    columns[x].nodes.Add(new Node(Node.JewelType.None, x, y));
                 }
             }
         }
@@ -71,32 +71,15 @@ public class NodeGrid : MonoBehaviour
         
         public void UpdateNode(Node updatedNode)
         {
-            columns[updatedNode.x]. nodes[updatedNode.y]. type = updatedNode.type;
+            columns[updatedNode.x].nodes[updatedNode.y].type = updatedNode.type;
         }
-    }
-    
-    [Serializable]
-    public class GridUpdate
-    {
-        public int playerId;
-        public string playerName;
-        public List<Node> updatedNodes;
-    }
-
-    [Serializable]
-    public class GridSetup
-    {
-        public int playerId;
-        public string playerName;
-        public int sizeX;
-        public int sizeY;
     }
 
     private Grid _grid;
     
     [SerializeField] private GridVisualizer gridVisualizer;
 
-    public void SetupGrid(GridSetup gridSetup)
+    public void SetupGrid(SocketManager.GridSetup gridSetup)
     {
         // Create the data model
         _grid = new Grid(gridSetup);
@@ -112,19 +95,20 @@ public class NodeGrid : MonoBehaviour
         }
     }
 
-    public void UpdateGrid(GridUpdate gridUpdate)
+    public void UpdateGrid(SocketManager.GridUpdate gridUpdate)
     {
         if (_grid == null)
         {
-            Debug.LogError("Grid not initialized!  Call SetupGrid first.");
+            Debug.LogError("Grid not initialized! Call SetupGrid first.");
             return;
         }
         
-        // Update the data model
+        // Update the data model - convert SocketManager.NodeUpdate to Node
         if (gridUpdate.updatedNodes != null)
         {
-            foreach (var node in gridUpdate.updatedNodes)
+            foreach (var nodeUpdate in gridUpdate.updatedNodes)
             {
+                var node = new Node((Node.JewelType)nodeUpdate.type, nodeUpdate.x, nodeUpdate.y);
                 _grid.UpdateNode(node);
             }
         }
@@ -138,8 +122,8 @@ public class NodeGrid : MonoBehaviour
 
     private void Start()
     {
-        //test code
-        SetupGrid(new()
+        // Test code
+        SetupGrid(new SocketManager.GridSetup
         {
             playerId = 0,
             playerName = "P1",
@@ -147,16 +131,17 @@ public class NodeGrid : MonoBehaviour
             sizeY = 12
         });
 
-        GridUpdate update = new()
+        var update = new SocketManager.GridUpdate
         {
             playerId = 0,
             playerName = "P1",
-            updatedNodes = new()
+            updatedNodes = new List<SocketManager.NodeUpdate>
+            {
+                new() { x = 0, y = 1, type = (int)Node.JewelType.Red },
+                new() { x = 0, y = 2, type = (int)Node.JewelType.Green },
+                new() { x = 0, y = 3, type = (int)Node.JewelType.Blue }
+            }
         };
-        
-        update.updatedNodes.Add(new Node(Node.JewelType. Red, 0, 1));
-        update.updatedNodes.Add(new Node(Node. JewelType.Green, 0, 2));
-        update.updatedNodes.Add(new Node(Node.JewelType. Blue, 0, 3));
         
         UpdateGrid(update);
     }

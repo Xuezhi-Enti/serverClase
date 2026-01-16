@@ -7,28 +7,30 @@ public class GridVisualizer : MonoBehaviour
     [SerializeField] private GameObject jewelPrefab;
     [SerializeField] private float cellSize = 1f;
     [SerializeField] private float spacing = 0.1f;
-    
+
     [Header("Player Info")]
     [SerializeField] private TMPro.TextMeshProUGUI playerNameText;
     [SerializeField] private TMPro.TextMeshProUGUI playerIdText;
-    
+
     private Dictionary<Vector2Int, JewelVisual> jewelVisuals = new Dictionary<Vector2Int, JewelVisual>();
     private int gridSizeX;
     private int gridSizeY;
-    
-    public void SetupGrid(NodeGrid. GridSetup gridSetup)
+
+    public void SetupGrid(SocketManager.GridSetup gridSetup)
     {
+        Debug.Log("SetupGrid called for Player " + gridSetup.playerId + ": " + gridSetup.sizeX + "x" + gridSetup.sizeY);
+
         ClearGrid();
-        
-        gridSizeX = gridSetup. sizeX;
+
+        gridSizeX = gridSetup.sizeX;
         gridSizeY = gridSetup.sizeY;
-        
+
         if (playerNameText != null)
-            playerNameText.text = "Player: " + gridSetup. playerName;
+            playerNameText.text = "Player: " + gridSetup.playerName;
         if (playerIdText != null)
-            playerIdText.text = "ID:  " + gridSetup.playerId;
-        
-        //Create visual grid
+            playerIdText.text = "ID: " + gridSetup.playerId;
+
+        // Create visual grid
         for (int x = 0; x < gridSizeX; x++)
         {
             for (int y = 0; y < gridSizeY; y++)
@@ -38,40 +40,54 @@ public class GridVisualizer : MonoBehaviour
                     y * (cellSize + spacing),
                     0
                 );
-                
+
                 GameObject jewelObj = Instantiate(jewelPrefab, position, Quaternion.identity, transform);
-                jewelObj.name = $"Jewel_{x}_{y}";
-                
+                jewelObj.name = "Jewel_" + x + "_" + y;
+
                 JewelVisual jewelVisual = jewelObj.GetComponent<JewelVisual>();
                 if (jewelVisual == null)
                     jewelVisual = jewelObj.AddComponent<JewelVisual>();
-                    
+
                 jewelVisual.Initialize();
                 jewelVisual.SetJewelType(NodeGrid.Node.JewelType.None);
-                
+
                 jewelVisuals[new Vector2Int(x, y)] = jewelVisual;
             }
         }
-        
-        // Center camera on grid
+
+        Debug.Log("Created " + jewelVisuals.Count + " jewel visuals");
+
         CenterCameraOnGrid();
     }
-    
-    public void UpdateGrid(NodeGrid.GridUpdate gridUpdate)
+
+    public void UpdateGrid(SocketManager.GridUpdate gridUpdate)
     {
-        if (gridUpdate.updatedNodes == null) return;
-        
-        foreach (var node in gridUpdate.updatedNodes)
+        if (gridUpdate.updatedNodes == null)
         {
-            Vector2Int pos = new Vector2Int(node.x, node.y);
-            
+            Debug.LogWarning("UpdateGrid called with null updatedNodes");
+            return;
+        }
+
+        Debug.Log("UpdateGrid: Updating " + gridUpdate.updatedNodes.Count + " nodes");
+
+        foreach (var nodeUpdate in gridUpdate.updatedNodes)
+        {
+            Vector2Int pos = new Vector2Int(nodeUpdate.x, nodeUpdate.y);
+
             if (jewelVisuals.ContainsKey(pos))
             {
-                jewelVisuals[pos].SetJewelType(node.type);
+                // Convert int type from SocketManager.NodeUpdate to JewelType enum
+                var jewelType = (NodeGrid.Node.JewelType)nodeUpdate.type;
+                jewelVisuals[pos].SetJewelType(jewelType);
+                Debug.Log("Updated jewel at (" + nodeUpdate.x + ", " + nodeUpdate.y + ") to type " + jewelType);
+            }
+            else
+            {
+                Debug.LogWarning("No jewel visual found at position (" + nodeUpdate.x + ", " + nodeUpdate.y + ")");
             }
         }
     }
-    
+
     private void ClearGrid()
     {
         foreach (var jewel in jewelVisuals.Values)
@@ -80,25 +96,28 @@ public class GridVisualizer : MonoBehaviour
                 Destroy(jewel.gameObject);
         }
         jewelVisuals.Clear();
+        Debug.Log("Grid cleared");
     }
-    
+
     private void CenterCameraOnGrid()
     {
         Camera mainCam = Camera.main;
         if (mainCam == null) return;
-        
+
         float gridWidth = (gridSizeX - 1) * (cellSize + spacing);
         float gridHeight = (gridSizeY - 1) * (cellSize + spacing);
-        
+
         Vector3 centerPosition = new Vector3(gridWidth / 2f, gridHeight / 2f, -10f);
         mainCam.transform.position = centerPosition;
-        
+
         if (mainCam.orthographic)
         {
             mainCam.orthographicSize = (gridHeight / 2f) + 2f;
         }
+
+        Debug.Log("Camera centered on grid at " + centerPosition);
     }
-    
+
     private void OnDestroy()
     {
         ClearGrid();

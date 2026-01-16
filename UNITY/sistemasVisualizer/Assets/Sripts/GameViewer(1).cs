@@ -16,22 +16,22 @@ public class GameViewer : MonoBehaviour
         }
         
         // Subscribe to socket events
-        SocketManager. Instance.OnGridSetup += OnGridSetup;
-        SocketManager.Instance.OnGridUpdate += OnGridUpdate;
+        SocketManager.Instance.OnGridSetup += OnGridSetup;
+        SocketManager.Instance.OnGridUpdate += OnGridUpdate;    
         
         // Setup leave button
         if (leaveButton != null)
         {
-            leaveButton. onClick.AddListener(LeaveRoom);
+            leaveButton.onClick.AddListener(LeaveRoom);
         }
     }
     
-    private void OnGridSetup(NodeGrid.GridSetup gridSetup)
+    private void OnGridSetup(SocketManager.GridSetup gridSetup)
     {
         nodeGrid.SetupGrid(gridSetup);
     }
     
-    private void OnGridUpdate(NodeGrid.GridUpdate gridUpdate)
+    private void OnGridUpdate(SocketManager.GridUpdate gridUpdate)
     {
         nodeGrid.UpdateGrid(gridUpdate);
     }

@@ -23,10 +23,10 @@ public class ReplayViewer : MonoBehaviour
     private void Start()
     {
         // Subscribe to replay data event
-        SocketManager.Instance. OnReplayDataReceived += OnReplayDataReceived;
+        SocketManager.Instance.OnReplayDataReceived += OnReplayDataReceived;
         
         // Setup buttons
-        playPauseButton?. onClick.AddListener(TogglePlayPause);
+        playPauseButton?.onClick.AddListener(TogglePlayPause);
         stopButton?.onClick.AddListener(StopReplay);
         backButton?.onClick.AddListener(GoBack);
         
@@ -37,25 +37,23 @@ public class ReplayViewer : MonoBehaviour
         }
     }
     
-    private void OnReplayDataReceived(SocketManager. ReplayData replayData)
+    private void OnReplayDataReceived(SocketManager.ReplayData replayData)
     {
         currentReplay = replayData;
         
-        if (currentReplay. frames.Count > 0)
+        if (currentReplay.frames.Count > 0)
         {
             // Setup grid with first frame
             var firstFrame = currentReplay.frames[0];
             if (firstFrame.gridUpdate != null)
             {
-                // You might need to send a grid setup first
-                // This depends on your server protocol
                 Debug.Log("Replay loaded with " + currentReplay.frames.Count + " frames");
             }
             
             // Setup timeline
             if (timelineSlider != null)
             {
-                timelineSlider.maxValue = currentReplay.frames. Count - 1;
+                timelineSlider.maxValue = currentReplay.frames.Count - 1;
                 timelineSlider.value = 0;
             }
         }
@@ -122,7 +120,7 @@ public class ReplayViewer : MonoBehaviour
     {
         while (currentFrameIndex < currentReplay.frames.Count && isPlaying)
         {
-            var frame = currentReplay. frames[currentFrameIndex];
+            var frame = currentReplay.frames[currentFrameIndex];
             
             // Apply frame
             if (frame.gridUpdate != null)
@@ -138,14 +136,14 @@ public class ReplayViewer : MonoBehaviour
             
             if (timeText != null)
             {
-                timeText.text = $"Frame:  {currentFrameIndex + 1}/{currentReplay.frames.Count}";
+                timeText.text = $"Frame: {currentFrameIndex + 1}/{currentReplay.frames.Count}";
             }
             
             currentFrameIndex++;
             
             // Wait based on timestamp or fixed delay
-            float waitTime = 0.1f / playbackSpeed; // Adjust as needed
-            if (currentFrameIndex < currentReplay. frames.Count)
+            float waitTime = 0.1f / playbackSpeed;
+            if (currentFrameIndex < currentReplay.frames.Count)
             {
                 float nextTimestamp = currentReplay.frames[currentFrameIndex].timestamp;
                 float currentTimestamp = frame.timestamp;
@@ -165,12 +163,12 @@ public class ReplayViewer : MonoBehaviour
     
     private void OnTimelineChanged(float value)
     {
-        if (! isPlaying && currentReplay != null)
+        if (!isPlaying && currentReplay != null)
         {
             currentFrameIndex = Mathf.RoundToInt(value);
-            if (currentFrameIndex < currentReplay. frames.Count)
+            if (currentFrameIndex < currentReplay.frames.Count)
             {
-                var frame = currentReplay. frames[currentFrameIndex];
+                var frame = currentReplay.frames[currentFrameIndex];
                 if (frame.gridUpdate != null)
                 {
                     nodeGrid.UpdateGrid(frame.gridUpdate);
@@ -188,7 +186,7 @@ public class ReplayViewer : MonoBehaviour
     {
         if (SocketManager.Instance != null)
         {
-            SocketManager.Instance. OnReplayDataReceived -= OnReplayDataReceived;
+            SocketManager.Instance.OnReplayDataReceived -= OnReplayDataReceived;
         }
     }
 }
