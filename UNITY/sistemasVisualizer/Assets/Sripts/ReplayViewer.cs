@@ -5,6 +5,11 @@ using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using TMPro;
 
+/// <summary>
+/// classe inicialmente para reproduzir replays de las partidas.
+/// No obstante por falta de tiempo no se ha implementado completamente, además de que ahora usamos un formato diferente para los updates
+/// </summary>
+
 public class ReplayViewer : MonoBehaviour
 {
     [SerializeField] private NodeGrid nodeGrid;
@@ -152,8 +157,7 @@ public class ReplayViewer : MonoBehaviour
             
             yield return new WaitForSeconds(waitTime);
         }
-        
-        // Replay finished
+
         isPlaying = false;
         if (playPauseButton != null)
         {
