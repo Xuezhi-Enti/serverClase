@@ -75,10 +75,11 @@ UnityEngine.Debug:LogError (object)
     [Serializable]
     public class RoomInfo
     {
-        public string roomId;
-        public string roomName;
-        public int playerCount;
-        public int maxPlayers;
+        public string id;          
+        public string name;        
+        public string desc;
+        public int users;         
+        public int maxUsers;   
         public string status;
     }
 
@@ -182,6 +183,7 @@ UnityEngine.Debug:LogError (object)
         if (socket != null && socket.Connected)
         {
             EnqueueOnMainThread(() => Debug.Log("[SocketManager] Already connected!"));
+            EnqueueOnMainThread(() => OnConnected?.Invoke());
             return;
         }
 
@@ -429,6 +431,29 @@ UnityEngine.Debug:LogError (object)
                 EnqueueOnMainThread(() => Debug.LogError("Error parsing replay data: " + msg + (json != null ? ("\n" + json) : "")));
             }
         });
+
+        socket.On("updateRooms", response =>
+        {
+            string json = null;
+
+            try
+            {
+                json = response.GetValue<System.Text.Json.JsonElement>().ToString();
+                var rooms = JsonUtility.FromJson<RoomListWrapper>("{\"rooms\":" + json + "}");
+
+                EnqueueOnMainThread(() =>
+                {
+                    Debug.Log("Received room list (updateRooms): " + json);
+                    Debug.Log("Parsed " + (rooms.rooms != null ? rooms.rooms.Count : 0) + " rooms");
+                    OnRoomListUpdated?.Invoke(rooms.rooms);
+                });
+            }
+            catch (Exception e)
+            {
+                var msg = e.Message;
+                EnqueueOnMainThread(() => Debug.LogError("Error parsing updateRooms: " + msg + (json != null ? ("\n" + json) : "")));
+            }
+        });
     }
 
     public void RequestRoomList()
@@ -470,6 +495,12 @@ UnityEngine.Debug:LogError (object)
     private void OnApplicationQuit()
     {
         Disconnect();
+    }
+
+    public void RequestCurrentGridState()
+    {
+        Debug.Log("Requesting current grid state...");
+        socket?.Emit("requestGridState");
     }
 
     [Serializable]

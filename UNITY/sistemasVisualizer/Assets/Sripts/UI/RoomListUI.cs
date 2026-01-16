@@ -24,7 +24,7 @@ public class RoomListUI : MonoBehaviour
         }
         else
         {
-            Debug.LogError("SocketManager. Instance is NULL!");
+            Debug.LogError("SocketManager.Instance is NULL!");
         }
 
         if (refreshButton != null)
@@ -58,10 +58,12 @@ public class RoomListUI : MonoBehaviour
             }
             else
             {
-                Debug.LogWarning("Socket not connected!  Trying to connect...");
+                Debug.LogWarning("Socket not connected! Trying to connect...");
+                SocketManager.Instance.Connect();
+
                 if (statusText != null)
                 {
-                    statusText.text = "Not connected!  Press refresh. ";
+                    statusText.text = "Connecting...";
                 }
             }
         }
@@ -97,11 +99,10 @@ public class RoomListUI : MonoBehaviour
 
         foreach (var room in rooms)
         {
-            Debug.Log("Creating UI for room: " + room.roomName + " (ID: " + room.roomId + ")");
+            Debug.Log("Creating UI for room: " + room.name + " (ID: " + room.id + ")");
 
             GameObject roomItem = Instantiate(roomItemPrefab, roomListContainer);
 
-            // FIX: Use correct child names from ROOM. prefab:  "ROOMtext", "STatus", "JOIN"
             TextMeshProUGUI roomNameText = roomItem.transform.Find("ROOMtext")?.GetComponent<TextMeshProUGUI>();
             TextMeshProUGUI roomStatusText = roomItem.transform.Find("STatus")?.GetComponent<TextMeshProUGUI>();
             Button joinButton = roomItem.transform.Find("JOIN")?.GetComponent<Button>();
@@ -121,20 +122,21 @@ public class RoomListUI : MonoBehaviour
 
             if (roomNameText != null)
             {
-                roomNameText.text = room.roomName;
+                roomNameText.text = room.name;
             }
 
             if (roomStatusText != null)
             {
-                roomStatusText.text = room.playerCount + "/" + room.maxPlayers + " - " + room.status;
+                roomStatusText.text = room.users + "/" + room.maxUsers + " - " + room.status;
             }
 
             if (joinButton != null)
             {
-                string roomId = room.roomId;
-                joinButton.onClick.AddListener(() => JoinRoom(roomId));
+                string roomId = room.id;
+                joinButton.onClick.AddListener(() => JoinRoomAsViewer(roomId));
 
-                if (room.status == "finished" || room.status == "full")
+                // Viewers can join any room except finished ones
+                if (room.status == "finished")
                 {
                     joinButton.interactable = false;
                 }
@@ -144,13 +146,18 @@ public class RoomListUI : MonoBehaviour
         Debug.Log("Room list UI updated");
     }
 
-    private void JoinRoom(string roomId)
+    private void JoinRoomAsViewer(string roomId)
     {
-        Debug.Log("Joining room: " + roomId);
+        Debug.Log("Joining room as viewer: " + roomId);
 
         if (SocketManager.Instance != null)
         {
+            // Join as viewer (viewers can join any room regardless of player count)
             SocketManager.Instance.JoinRoom(roomId);
+            
+            // Request the current grid state after joining
+            SocketManager.Instance.RequestCurrentGridState();
+            
             SceneManager.LoadScene("Gameplay");
         }
         else
