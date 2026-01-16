@@ -32,7 +32,7 @@ public class JewelVisual : MonoBehaviour
             }
             else
             {
-                Debug.LogError($"JewelVisual: Material index {materialIndex} out of range for type {type}. Array has {jewelMaterials.Length} materials.");
+                Debug.LogError($"OUT OF BOUNDS");
             }
         }
     }

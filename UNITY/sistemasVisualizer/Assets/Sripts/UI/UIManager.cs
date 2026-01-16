@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using TMPro;
 
+//Manage the main menu UI interactions and connection status by events
 public class UIManager : MonoBehaviour
 {
     [SerializeField] private GameObject mainMenuPanel;

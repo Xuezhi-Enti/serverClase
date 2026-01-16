@@ -162,6 +162,8 @@ UnityEngine.Debug:LogError (object)
 
     #endregion
 
+    //El resto del codigo es simplemente conectarse al servidor y subsribirse a eventos a traves de SocketIO
+
     private void Awake()
     {
         if (Instance == null)

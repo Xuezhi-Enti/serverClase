@@ -103,6 +103,7 @@ public class RoomListUI : MonoBehaviour
 
             GameObject roomItem = Instantiate(roomItemPrefab, roomListContainer);
 
+            //un poco feo pero funciona
             TextMeshProUGUI roomNameText = roomItem.transform.Find("ROOMtext")?.GetComponent<TextMeshProUGUI>();
             TextMeshProUGUI roomStatusText = roomItem.transform.Find("STatus")?.GetComponent<TextMeshProUGUI>();
             Button joinButton = roomItem.transform.Find("JOIN")?.GetComponent<Button>();
