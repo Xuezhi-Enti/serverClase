@@ -1,0 +1,5 @@
+# Ignorar archivos de sistema o volcados temporales
+.DS_Store
+Thumbs.db
+*.log
+*.bak
