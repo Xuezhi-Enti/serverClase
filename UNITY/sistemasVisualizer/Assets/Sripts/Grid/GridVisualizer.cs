@@ -30,19 +30,22 @@ public class GridVisualizer : MonoBehaviour
         if (playerIdText != null)
             playerIdText.text = "ID: " + gridSetup.playerId;
 
-        // Create visual grid
         for (int x = 0; x < gridSizeX; x++)
         {
             for (int y = 0; y < gridSizeY; y++)
             {
-                Vector3 position = new Vector3(
+                Vector3 localPosition = new Vector3(
                     x * (cellSize + spacing),
                     y * (cellSize + spacing),
-                    0
+                    0f
                 );
 
-                GameObject jewelObj = Instantiate(jewelPrefab, position, Quaternion.identity, transform);
+                GameObject jewelObj = Instantiate(jewelPrefab, Vector3.zero, Quaternion.identity, transform);
                 jewelObj.name = "Jewel_" + x + "_" + y;
+
+                jewelObj.transform.localPosition = localPosition;
+                jewelObj.transform.localRotation = Quaternion.identity;
+                jewelObj.transform.localScale = Vector3.one;
 
                 JewelVisual jewelVisual = jewelObj.GetComponent<JewelVisual>();
                 if (jewelVisual == null)
@@ -76,7 +79,6 @@ public class GridVisualizer : MonoBehaviour
 
             if (jewelVisuals.ContainsKey(pos))
             {
-                // Convert int type from SocketManager.NodeUpdate to JewelType enum
                 var jewelType = (NodeGrid.Node.JewelType)nodeUpdate.type;
                 jewelVisuals[pos].SetJewelType(jewelType);
                 Debug.Log("Updated jewel at (" + nodeUpdate.x + ", " + nodeUpdate.y + ") to type " + jewelType);
@@ -107,7 +109,10 @@ public class GridVisualizer : MonoBehaviour
         float gridWidth = (gridSizeX - 1) * (cellSize + spacing);
         float gridHeight = (gridSizeY - 1) * (cellSize + spacing);
 
-        Vector3 centerPosition = new Vector3(gridWidth / 2f, gridHeight / 2f, -10f);
+        Vector3 localCenter = new Vector3(gridWidth / 2f, gridHeight / 2f, 0f);
+        Vector3 worldCenter = transform.TransformPoint(localCenter);
+
+        Vector3 centerPosition = new Vector3(worldCenter.x, worldCenter.y, -10f);
         mainCam.transform.position = centerPosition;
 
         if (mainCam.orthographic)

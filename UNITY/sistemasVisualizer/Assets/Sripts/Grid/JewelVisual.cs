@@ -24,7 +24,16 @@ public class JewelVisual : MonoBehaviour
         else
         {
             meshRenderer.enabled = true;
-            meshRenderer.material = jewelMaterials[(int)type - 1];
+            
+            int materialIndex = (int)type - 1;
+            if (materialIndex >= 0 && materialIndex < jewelMaterials.Length)
+            {
+                meshRenderer.material = jewelMaterials[materialIndex];
+            }
+            else
+            {
+                Debug.LogError($"JewelVisual: Material index {materialIndex} out of range for type {type}. Array has {jewelMaterials.Length} materials.");
+            }
         }
     }
 

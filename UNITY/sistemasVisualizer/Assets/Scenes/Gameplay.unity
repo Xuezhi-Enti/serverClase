@@ -176,7 +176,7 @@ Transform:
   m_GameObject: {fileID: 578611751}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -6.22, y: 1.39, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -879,6 +879,69 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!1 &1905302835
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1905302838}
+  - component: {fileID: 1905302837}
+  - component: {fileID: 1905302836}
+  m_Layer: 0
+  m_Name: GRID Player2
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1905302836
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1905302835}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f32065244db379b4d8427f823718ed34, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  jewelPrefab: {fileID: 5474894395087139349, guid: e2bcaf720540ba84698598007d337930, type: 3}
+  cellSize: 1
+  spacing: 0.1
+  playerNameText: {fileID: 1924736376}
+  playerIdText: {fileID: 1834200178}
+--- !u!114 &1905302837
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1905302835}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eb58d4ff1022bd748a2852e8df0024f7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gridVisualizer: {fileID: 1905302836}
+--- !u!4 &1905302838
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1905302835}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 4.43, y: 1.18, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1924736374
 GameObject:
   m_ObjectHideFlags: 0
@@ -1027,6 +1090,7 @@ GameObject:
   - component: {fileID: 2090456608}
   - component: {fileID: 2090456607}
   - component: {fileID: 2090456610}
+  - component: {fileID: 2090456611}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -1152,6 +1216,21 @@ MonoBehaviour:
     m_MipBias: 0
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
+--- !u!114 &2090456611
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2090456606}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 535aa76545bab3140875b26b5c15fe69, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  player1Grid: {fileID: 578611753}
+  player2Grid: {fileID: 1905302837}
+  leaveButton: {fileID: 1638325391}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -1159,5 +1238,6 @@ SceneRoots:
   - {fileID: 2090456609}
   - {fileID: 942044673}
   - {fileID: 578611754}
+  - {fileID: 1905302838}
   - {fileID: 1889631729}
   - {fileID: 1372753658}

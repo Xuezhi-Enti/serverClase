@@ -29,7 +29,7 @@ public class NodeGrid : MonoBehaviour
             this.y = y;
         }
     }
-    
+
     [Serializable]
     public class Grid
     {
@@ -38,13 +38,13 @@ public class NodeGrid : MonoBehaviour
         {
             public List<Node> nodes = new();
         }
-        
+
         public List<Column> columns = new();
 
         [SerializeField]
         private int _playerId;
         public int PlayerId => _playerId;
-        
+
         [SerializeField]
         private string _playerName;
         public string PlayerName => _playerName;
@@ -68,7 +68,7 @@ public class NodeGrid : MonoBehaviour
         {
             return columns[x].nodes[y];
         }
-        
+
         public void UpdateNode(Node updatedNode)
         {
             columns[updatedNode.x].nodes[updatedNode.y].type = updatedNode.type;
@@ -76,14 +76,14 @@ public class NodeGrid : MonoBehaviour
     }
 
     private Grid _grid;
-    
+
     [SerializeField] private GridVisualizer gridVisualizer;
 
     public void SetupGrid(SocketManager.GridSetup gridSetup)
     {
         // Create the data model
         _grid = new Grid(gridSetup);
-        
+
         // Setup the visual representation
         if (gridVisualizer != null)
         {
@@ -99,11 +99,9 @@ public class NodeGrid : MonoBehaviour
     {
         if (_grid == null)
         {
-            Debug.LogError("Grid not initialized! Call SetupGrid first.");
+            Debug.LogError("Grid not initialized!  Call SetupGrid first.");
             return;
         }
-        
-        // Update the data model - convert SocketManager.NodeUpdate to Node
         if (gridUpdate.updatedNodes != null)
         {
             foreach (var nodeUpdate in gridUpdate.updatedNodes)
@@ -112,37 +110,11 @@ public class NodeGrid : MonoBehaviour
                 _grid.UpdateNode(node);
             }
         }
-        
+
         // Update the visual representation
         if (gridVisualizer != null)
         {
             gridVisualizer.UpdateGrid(gridUpdate);
         }
-    }
-
-    private void Start()
-    {
-        // Test code
-        SetupGrid(new SocketManager.GridSetup
-        {
-            playerId = 0,
-            playerName = "P1",
-            sizeX = 6,
-            sizeY = 12
-        });
-
-        var update = new SocketManager.GridUpdate
-        {
-            playerId = 0,
-            playerName = "P1",
-            updatedNodes = new List<SocketManager.NodeUpdate>
-            {
-                new() { x = 0, y = 1, type = (int)Node.JewelType.Red },
-                new() { x = 0, y = 2, type = (int)Node.JewelType.Green },
-                new() { x = 0, y = 3, type = (int)Node.JewelType.Blue }
-            }
-        };
-        
-        UpdateGrid(update);
     }
 }
