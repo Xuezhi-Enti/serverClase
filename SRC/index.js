@@ -10,7 +10,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(
   session({
     secret: "miSecretoSuperSecreto",
-    resave: false,
+    resave:  false,
     saveUninitialized: true,
   })
 );
@@ -19,7 +19,7 @@ app.use(express.static(path.join(__dirname, "public")));
 const connection = mysql.createConnection({
   host: "localhost",
   user: "root",
-  password: "user",
+  password:  "user",
   database: "mydb",
 });
 
@@ -31,7 +31,7 @@ connection.connect((err) => {
   console.log("Base de datos conectada");
 });
 
-// RUTAS HTTP
+// RUTAS HTTP - MODIFIED TO USE STORED PROCEDURES
 
 app.post("/auth/register", (req, res) => {
   const { username, password } = req.body;
@@ -40,14 +40,15 @@ app.post("/auth/register", (req, res) => {
 
   const hashedPassword = bcrypt.hashSync(password, 10);
 
+  // Use stored procedure instead of inline SQL
   connection.query(
-    "INSERT INTO users (username, password) VALUES (?, ?)",
+    "CALL sp_register_user(?, ?)",
     [username, hashedPassword],
-    (err) => {
+    (err, results) => {
       if (err) {
         if (err.code === "ER_DUP_ENTRY")
           return res.json({ status: "error", message: "Usuario ya existe" });
-        return res.json({ status: "error", message: "Error en la base de datos" });
+        return res.json({ status: "error", message:  "Error en la base de datos" });
       }
       res.json({ status: "ok", message: "Usuario registrado.  Ahora inicia sesión." });
     }
@@ -59,12 +60,17 @@ app.post("/auth/login", (req, res) => {
   if (!username || !password)
     return res.json({ status: "error", message: "Campos vacíos" });
 
-  connection.query("SELECT * FROM users WHERE username = ?", [username], (err, results) => {
+  // Use stored procedure instead of inline SQL
+  connection.query("CALL sp_login_user(? )", [username], (err, results) => {
     if (err) return res.json({ status: "error", message: "Error en la base de datos" });
-    if (results.length === 0)
+    
+    // Stored procedures return results in an array, first element contains the result set
+    const users = results[0];
+    
+    if (users.length === 0)
       return res.json({ status: "error", message: "Usuario no encontrado" });
 
-    const user = results[0];
+    const user = users[0];
     const match = bcrypt.compareSync(password, user.password);
     if (match) {
       req.session.userId = user.id;
@@ -92,10 +98,10 @@ const Grid = require("./gameLogic/grid");
 
 const activeRooms = new Map();
 
-// Replays (no implemantado)
+// Replays (no implementado)
 const replays = new Map();
 
-// Sala de juego: gestiona jugadores, espectadores y el bucle del juego
+// Sala de juego:  gestiona jugadores, espectadores y el bucle del juego
 class GameRoom {
   constructor(roomId, roomName, roomDesc = "") {
     this.roomId = roomId;
@@ -108,7 +114,7 @@ class GameRoom {
     // Lista de sockets conectados como espectadores
     this.viewers = [];
 
-    // Estado de la sala: waiting, playing, paused, finished
+    // Estado de la sala:  waiting, playing, paused, finished
     this.status = "waiting";
 
     this.replayFrames = [];
@@ -117,7 +123,7 @@ class GameRoom {
     this.sizeX = 6;
     this.sizeY = 12;
 
-    // Grids por jugador: {1: Grid, 2: Grid}
+    // Grids por jugador:  {1: Grid, 2: Grid}
     this.grids = {};
 
     //ultimo input recibido por jugador (para evitar flooding)
@@ -131,7 +137,7 @@ class GameRoom {
     if (!this.viewers.includes(socketId)) {
       this.viewers.push(socketId);
       console.log(
-        `Viewer ${socketId} joined room ${this.roomId}.  Total viewers: ${this.viewers.length}`
+        `Viewer ${socketId} joined room ${this.roomId}.   Total viewers: ${this.viewers.length}`
       );
     }
   }
@@ -143,7 +149,7 @@ class GameRoom {
     );
 
     // Pausa la partida si no quedan espectadores
-    if (this.viewers.length === 0 && this.status === "playing") {
+    if (this. viewers.length === 0 && this.status === "playing") {
       this.pauseGame();
     }
   }
@@ -154,8 +160,8 @@ class GameRoom {
 
     // Notifica a todos que se unio un jugador
     this.broadcastToAll("playerJoined", {
-      playerId: playerId,
-      playerName: playerData.name,
+      playerId:  playerId,
+      playerName:  playerData.name,
       playerCount: Object.keys(this.players).length,
     });
 
@@ -190,21 +196,21 @@ class GameRoom {
   }
 
   stopLoop() {
-    if (!this.loopHandle) return;
+    if (! this.loopHandle) return;
     clearInterval(this.loopHandle);
     this.loopHandle = null;
     console.log(`Loop stopped in room ${this.roomId}`);
   }
 
-  //Tick del servidor: procesa un input por jugador en cada intervalo
+  //Tick del servidor:  procesa un input por jugador en cada intervalo
   tick() {
     if (this.status !== "playing") return;
 
     [1, 2].forEach((playerId) => {
       const input = this.pendingInputs[playerId];
-      if (!input) return;
+      if (! input) return;
 
-      this.pendingInputs[playerId] = null;
+      this. pendingInputs[playerId] = null;
 
       const grid = this.grids[playerId];
       if (!grid) return;
@@ -218,7 +224,7 @@ class GameRoom {
       const gridUpdate = {
         playerId,
         playerName,
-        updatedNodes: [diff.from, diff.to],
+        updatedNodes: [diff. from, diff.to],
       };
 
       this.broadcastToViewers("gridUpdate", gridUpdate);
@@ -228,7 +234,7 @@ class GameRoom {
   //Guarda el último input válido (w/a/s/d) para que se procese en el tick
   handleInput(playerId, key) {
     if (this.status !== "playing") return false;
-    if (!this.players[playerId]) return false;
+    if (! this.players[playerId]) return false;
 
     const k = String(key || "").toLowerCase();
     if (!["w", "a", "s", "d"].includes(k)) return false;
@@ -239,8 +245,8 @@ class GameRoom {
 
   //Inicializa los grids de ambos jugadores y envía el estado completo a espectadores
   initializeSingleActiveGrids() {
-    this.grids[1] = new Grid(this.sizeX, this.sizeY, 0);
-    this.grids[2] = new Grid(this.sizeX, this.sizeY, 0);
+    this.grids[1] = new Grid(this. sizeX, this.sizeY, 0);
+    this.grids[2] = new Grid(this. sizeX, this.sizeY, 0);
 
     // Activo = naranja
     this.grids[1].setActiveType(5);
@@ -252,7 +258,7 @@ class GameRoom {
       const full = {
         playerId,
         playerName,
-        updatedNodes: this.grids[playerId].toFullUpdatedNodes(),
+        updatedNodes:  this.grids[playerId].toFullUpdatedNodes(),
       };
       this.recordFrame(playerId, full);
       this.broadcastToViewers("gridUpdate", full);
@@ -270,16 +276,16 @@ class GameRoom {
     const p2 = this.players[2];
 
     const gridSetup1 = {
-      playerId: 1,
-      playerName: (p1 && p1.name) || "Player 1",
+      playerId:  1,
+      playerName:  (p1 && p1.name) || "Player 1",
       sizeX: this.sizeX,
       sizeY: this.sizeY,
     };
 
     const gridSetup2 = {
-      playerId: 2,
-      playerName: (p2 && p2.name) || "Player 2",
-      sizeX: this.sizeX,
+      playerId:  2,
+      playerName:  (p2 && p2.name) || "Player 2",
+      sizeX: this. sizeX,
       sizeY: this.sizeY,
     };
 
@@ -317,7 +323,7 @@ class GameRoom {
   recordFrame(playerId, gridUpdate) {
     const timestamp = (Date.now() - this.gameStartTime) / 1000;
     this.replayFrames.push({
-      timestamp: timestamp,
+      timestamp:  timestamp,
       playerId: playerId,
       gridUpdate: gridUpdate,
     });
@@ -334,7 +340,7 @@ class GameRoom {
       frames: this.replayFrames,
     };
     replays.set(replayId, replayData);
-    console.log(`Saved replay: ${replayId}`);
+    console.log(`Saved replay:  ${replayId}`);
     return replayId;
   }
 
@@ -376,10 +382,10 @@ class GameRoom {
 
 // Construye un array consistente con la lista de salas para los clientes web
 function buildRoomList() {
-  return Array.from(activeRooms.values()).map((room) => room.getRoomInfo());
+  return Array.from(activeRooms. values()).map((room) => room.getRoomInfo());
 }
 
-// API HTTP usada por fetchRooms() en entraste.html
+// API HTTP usada por fetchRooms() en entraste. html
 app.get("/api/rooms", (req, res) => {
   res.json(buildRoomList());
 });
@@ -396,12 +402,12 @@ function emitRoomUsers(roomId) {
 io.on("connection", (socket) => {
   console.log(`Client connected: ${socket.id}`);
 
-  socket.emit("connected", { message: "Connected to server! ", socketId: socket.id });
+  socket.emit("connected", { message: "Connected to server!  ", socketId: socket.id });
 
   // Solicita lista de salas
   socket.on("getRoomList", () => {
     const roomList = buildRoomList();
-    console.log(`Sending room list to ${socket.id}:`, roomList);
+    console.log(`Sending room list to ${socket.id}: `, roomList);
     socket.emit("updateRooms", roomList);
   });
 
@@ -423,7 +429,7 @@ io.on("connection", (socket) => {
     // Notifica a todos la lista de salas actualizada
     io.emit("updateRooms", buildRoomList());
 
-    socket.emit("roomCreated", { roomId: roomId, roomName: newRoom.roomName });
+    socket.emit("roomCreated", { roomId:  roomId, roomName: newRoom.roomName });
   });
 
 
@@ -460,7 +466,7 @@ io.on("connection", (socket) => {
           playerId: 1,
           playerName: p1.name || "Player 1",
           sizeX: 6,
-          sizeY: 12,
+          sizeY:  12,
         });
       }
 
@@ -487,7 +493,7 @@ io.on("connection", (socket) => {
     const roomId = socket.currentRoomId;
     if (!roomId) return;
 
-    const room = activeRooms.get(roomId);
+    const room = activeRooms. get(roomId);
     if (!room || room.status !== "playing") return;
 
     [1, 2].forEach((playerId) => {
@@ -526,7 +532,7 @@ io.on("connection", (socket) => {
   //Entra a una sala como jugador (cliente web)
   socket.on("joinRoomAsPlayer", (data) => {
     const { roomId, playerName } = data;
-    console.log(`Socket ${socket.id} wants to join room ${roomId} as player: ${playerName}`);
+    console.log(`Socket ${socket.id} wants to join room ${roomId} as player:  ${playerName}`);
 
     const room = activeRooms.get(roomId);
     if (!room) {
@@ -539,7 +545,7 @@ io.on("connection", (socket) => {
       return;
     }
 
-    const playerId = Object.keys(room.players).length === 0 ? 1 : 2;
+    const playerId = Object.keys(room.players).length === 0 ? 1 :  2;
 
     socket.join(roomId);
     socket.currentRoomId = roomId;
@@ -547,7 +553,7 @@ io.on("connection", (socket) => {
 
     room.addPlayer(playerId, {
       id: playerId,
-      name: playerName,
+      name:  playerName,
       socket: socket,
     });
 
